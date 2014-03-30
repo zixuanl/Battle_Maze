@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="32" height="20" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="Grass" tilewidth="32" tileheight="32">
+  <image source="tank_bk.jpg" width="640" height="480"/>
+ </tileset>
+ <layer name="Tile Layer 1" width="32" height="20">
+  <data encoding="base64" compression="zlib">
+   eJy1VVsOwCAI8xrq7n/O7WNLCOHRIvsgKopFKDjHGPOV9ch+5BK6SJZhl4mFI9fRnudXxW8PgzljnZWyjXn0Xuv+b9+bZ/HVegs/y0HVFyb/CA/k2J3/Ci+0PcKFU3zmvV7toPV2WgdsbSG5O8191UbbbUefcT2LqbaP+NHV2yp3VWv9FJ/NE4uP/E1ILBh8z1+NwdRJ9K904iOc6MCv8uYPfLa/MGsUH+05Gf9uQ59Bzg==
+  </data>
+ </layer>
+ <layer name="Tile Layer 2" width="32" height="20">
+  <data encoding="base64" compression="zlib">
+   eJzFlUsOgDAIRN25c6mHsKfwPl7H86qLJmRCYbAfJyEaHfoKYpomXxvh+eKfn0id+VYu8lclV0bpuRaeV+Mz9UQVqf8P/vse+26tgb4z6EcfU39pbYbvrZXEPZsTmT+Wr0mrTeayDKljMB8l+d78RfkL4UN+rn9X8qzv2YIv+6/xLY2oP8qPqnX/a/hRSX6e33wt7Q3nvBWf7QX+T8i/jGD3UsMfrZ585jx4+TerGRUj
+  </data>
+ </layer>
+ <objectgroup name="collision" width="32" height="20" visible="0">
+  <object x="448" y="257" width="31" height="285">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="385" y="225" width="318" height="30">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="672" y="161" width="31" height="63">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="385" y="161" width="30" height="61">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="417" y="65" width="285" height="28">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="673" y="1" width="29" height="62">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="768" y="32" width="31" height="160">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="802" y="64" width="157" height="31">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="896" y="256" width="18" height="159">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="993" y="161" width="31" height="127"/>
+  <object x="993" y="353" width="34" height="28"/>
+  <object x="544" y="481" width="159" height="29">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="544" y="513" width="33" height="63">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="768" y="258" width="31" height="28">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="769" y="321" width="29" height="95">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="289" y="4" width="29" height="186">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="225" y="66" width="127" height="29">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="97" y="64" width="63" height="29">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1" y="161" width="93" height="28">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="65" y="224" width="31" height="30">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="241" y="255" width="15" height="96">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="98" y="545" width="222" height="30">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="194" y="352" width="125" height="32">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="193" y="450" width="126" height="28">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="193" y="386" width="29" height="61">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="610" y="322" width="17" height="93">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="528" y="162" width="17" height="63">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="865" y="482" width="63" height="29">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="881" y="516" width="16" height="59">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="3" y="321" width="92" height="29">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="80" y="354" width="16" height="127">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="20" y="452" width="40" height="34">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
+  <object x="813" y="24" width="51" height="36">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
+  <object x="227" y="16" width="45" height="39">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
+  <object x="918" y="528" width="44" height="42">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
+  <object x="1007" y="1" width="23" height="639">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1" y="0" width="15" height="644">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="19" y="0" width="981" height="3">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="18" y="638" width="990" height="2">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>

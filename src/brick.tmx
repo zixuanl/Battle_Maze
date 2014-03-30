@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="20" height="20" tilewidth="32" tileheight="32" backgroundcolor="#012714">
+ <tileset firstgid="1" name="brick" tilewidth="32" tileheight="32">
+  <image source="../../sample_pygame/src/tank_bk.jpg" width="640" height="480"/>
+ </tileset>
+ <tileset firstgid="301" name="layer-2" tilewidth="32" tileheight="32">
+  <image source="../../sample_pygame/src/tank_bk.jpg" width="640" height="480"/>
+ </tileset>
+ <layer name="background" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJyTYmBgkAZiSSCWgrJlSOSjs3HJkWouOh+XffjsQhejhrto7V98Zg43/w52943Gx+ByH7XLg9H0Qpl/AbocKRU=
+  </data>
+ </layer>
+ <layer name="foreground" width="20" height="20">
+  <data encoding="base64" compression="zlib">
+   eJy9lMsNwCAMQ0NHohP3s0G/K/QzVH2hUg9AHBWe5EsgQbIBkTJ0TqSHBmh03zXfiLQNN2/BjBXaoN3l9+c4MOOELuj+YR5Lyh8LGn8m1GflWRp/2BwtuVuJ+cvWAzF/2Xog5i9b11DT91pY3k+qx/K/pHpyeXniTrw9hhxLZ/8ApoRASQ==
+  </data>
+ </layer>
+ <objectgroup name="collision" width="20" height="20">
+  <properties>
+   <property name="" value=""/>
+  </properties>
+  <object x="464" y="130" width="32" height="60">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="526" y="130" width="31" height="60">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="465" y="195" width="95" height="28">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="481" y="226" width="61" height="30">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="289" y="34" width="61" height="28">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="272" y="289" width="30" height="61">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="336" y="287" width="33" height="65">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="273" y="353" width="93" height="29">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="289" y="386" width="61" height="29">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="464" y="288" width="33" height="64">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="529" y="289" width="31" height="63">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="465" y="355" width="94" height="28">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="81" y="34" width="30" height="62">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="144" y="34" width="31" height="62">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="80" y="98" width="95" height="28">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object name="all" x="79" y="290" width="34" height="61">
+   <properties>
+    <property name="blocker" value="all"/>
+   </properties>
+  </object>
+  <object name="all" x="145" y="289" width="31" height="62">
+   <properties>
+    <property name="blocker" value="all"/>
+   </properties>
+  </object>
+  <object name="all" x="79" y="354" width="95" height="28">
+   <properties>
+    <property name="blocker" value="all"/>
+   </properties>
+  </object>
+  <object x="80" y="480" width="32" height="65">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="145" y="479" width="31" height="65">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="80" y="546" width="94" height="30">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="97" y="579" width="61" height="27">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="496" y="481" width="31" height="62">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="561" y="481" width="31" height="61">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="496" y="544" width="95" height="32">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="513" y="579" width="61" height="28">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object name="player" x="247" y="546" width="38" height="32">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
+  <object x="319" y="543" width="17" height="34">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object name="player" x="250" y="118" width="45" height="36">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
+  <object name="player" x="540" y="29" width="40" height="37">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
+  <object name="player" x="514" y="416" width="37" height="36">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>
