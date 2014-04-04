@@ -3,8 +3,7 @@ import sys
 import threading
 from Tkinter import *
 from random import *
-from sample_app import *
-from btpeer import *
+from framework import *
 import pygame
 import sys
 import tmx
@@ -29,7 +28,7 @@ PLAY_START="PSTA"
 class wall(pygame.sprite.Sprite):
     def __init__(self,location,*groups):
         super(wall,self).__init__(*groups)
-        self.image=pygame.image.load("brick.png")
+        self.image=pygame.image.load("game_items/brick.png")
         self.rect=pygame.rect.Rect(location,self.image.get_size())
         self.lifespan=50
     def update(self, dt, game):
@@ -41,7 +40,7 @@ class wall(pygame.sprite.Sprite):
 class fire(pygame.sprite.Sprite):
     def __init__(self,location,direction,*groups):
         super(fire,self).__init__(*groups)
-        self.image = pygame.image.load("bullet.png")
+        self.image = pygame.image.load("game_items/bullet.png")
         self.rect=pygame.rect.Rect(location,self.image.get_size())
         self.direction=direction
         self.lifespan=1
@@ -67,7 +66,7 @@ class fire(pygame.sprite.Sprite):
 class bullet(pygame.sprite.Sprite):
     def __init__(self,location,direction,*groups):
         super(bullet,self).__init__(*groups)
-        self.image = pygame.image.load("bullet.png")
+        self.image = pygame.image.load("game_items/bullet.png")
         self.rect=pygame.rect.Rect(location,self.image.get_size())
         self.direction=direction
         self.lifespan=1
@@ -99,9 +98,9 @@ class bullet(pygame.sprite.Sprite):
             self.kill()
             print "Player Dead"
 
-class enemies(pygame.sprite.Sprite,BTPeer):
+class enemies(pygame.sprite.Sprite,Communicate):
     def __init__(self, location,player_num, *groups):
-        BTPeer.__init__(self)
+        Communicate.__init__(self)
         super(enemies,self).__init__(*groups)
         self.image=pygame.image.load(self.player_tank_map[player_num]['up'])
         self.up_image = pygame.image.load(self.player_tank_map[player_num]['up'])
@@ -109,7 +108,7 @@ class enemies(pygame.sprite.Sprite,BTPeer):
         self.right_image = pygame.image.load(self.player_tank_map[player_num]['right'])
         self.down_image = pygame.image.load(self.player_tank_map[player_num]['down'])
         self.direction = 2
-        self.rect=pygame.rect.Rect(location,self.image.get_size())
+        self.rect=pygame.rect.Rect(location,(self.image.get_width()-4,self.image.get_height()-4))
         self.guncooldown=0
         self.blockwallcooldown=0
         self.firecount=5
@@ -173,9 +172,9 @@ class enemies(pygame.sprite.Sprite,BTPeer):
         #  game.tilemap.set_focus(new.x, new.y)
         
               
-class player(pygame.sprite.Sprite,BTPeer):
+class player(pygame.sprite.Sprite,Communicate):
     def __init__(self, location,player_num,*groups):
-        BTPeer.__init__(self)
+        Communicate.__init__(self)
         super(player,self).__init__(*groups)
         self.image=pygame.image.load(self.player_tank_map[player_num]['up'])
         self.up_image = pygame.image.load(self.player_tank_map[player_num]['up'])
@@ -183,7 +182,7 @@ class player(pygame.sprite.Sprite,BTPeer):
         self.right_image = pygame.image.load(self.player_tank_map[player_num]['right'])
         self.down_image = pygame.image.load(self.player_tank_map[player_num]['down'])
         self.direction = 2
-        self.rect=pygame.rect.Rect(location,self.image.get_size())
+        self.rect=pygame.rect.Rect(location,(self.image.get_width()-4,self.image.get_height()-4))
         self.guncooldown=0
         self.blockwallcooldown=0
         self.firecount=5
@@ -234,7 +233,7 @@ class player(pygame.sprite.Sprite,BTPeer):
         if pygame.sprite.spritecollide(self, game.blockwall,False):
             self.rect=last_position
         new = self.rect
-        for cell in game.tilemap.layers['collision'].collide(new,'blocker'):
+        for cell in game.tilemap.layers['collision'].collide(new,"blocker"):
             if last_position.right <= cell.left and new.right > cell.left:
                 new.right = cell.left
             if last_position.left >= cell.right and new.left < cell.right:
@@ -245,7 +244,7 @@ class player(pygame.sprite.Sprite,BTPeer):
                 new.top = cell.bottom
         game.tilemap.set_focus(new.x, new.y)
 
-class Game(object,BTPeer):
+class Game(object,Communicate):
     
     """
     This constructor does most of the bootstrapping. All nodes first contact the bootstrap node and get information
@@ -257,7 +256,7 @@ class Game(object,BTPeer):
     def __init__( self, firstpeer,maxpeers=5, serverport=12345, master=None ):
     #--------------------------------------------------------------------------
         
-        BTPeer.__init__(self, maxpeers, serverport)
+        Communicate.__init__(self, maxpeers, serverport)
         """
         This is a dictionary containing message type to function pointer mappings. On receiving a message,check if a 
         handler is present and pass the data to the handler
@@ -270,7 +269,7 @@ class Game(object,BTPeer):
                     PEER_INFO_DETAILS: self.__peer_info_details,PLAY_START: self.__play_start
                     }
         for mt in handlers:
-            self.add_message_handler(mt, handlers[mt])
+            self.add_event_handler(mt, handlers[mt])
         
         
         self.map=" " # signifies the current map to be used
@@ -287,7 +286,7 @@ class Game(object,BTPeer):
         if firstpeer!=self.bootstrap:
             self.contactbootstrap(firstpeer) #contact bootstrap to get required information
             pygame.init()
-            self.screen = pygame.display.set_mode((1010, 630))
+            self.screen = pygame.display.set_mode((1024, 624))
             # The first node to join the game is given the option to start the game. All others wait for him to start
             if int(self.number_peers) > 0:
                 self.contactpeers(firstpeer)
@@ -336,9 +335,9 @@ class Game(object,BTPeer):
                 print "GAME ID PRESENT"
                 player_number = len(self.game_dict[self.game_id])+1
                 if(len(self.game_dict[self.game_id])<=3):
-                    peerconn.senddata(DETAILS,'%d %s %d %d' % (self.game_id,self.gameid_map_dict[self.game_id],len(self.game_dict[self.game_id]),player_number))
+                    peerconn.send_data(DETAILS,'%d %s %d %d' % (self.game_id,self.gameid_map_dict[self.game_id],len(self.game_dict[self.game_id]),player_number))
                     for peer_list in self.game_dict[self.game_id]:
-                        peerconn.senddata(PLAYER_LIST,'%s %s %d' % (peer_list,peer_list.split(":")[0],int(peer_list.split(":")[1])))
+                        peerconn.send_data(PLAYER_LIST,'%s %s %d' % (peer_list,peer_list.split(":")[0],int(peer_list.split(":")[1])))
                     self.game_dict[self.game_id].append(data)
                     if(len(self.game_dict[self.game_id])==4):
                         self.game_id=self.game_id+1
@@ -351,7 +350,7 @@ class Game(object,BTPeer):
                 print self.available_maps_dict[map_id]    
                 self.game_dict[self.game_id]=[]
                 player_number = len(self.game_dict[self.game_id])+1
-                peerconn.senddata(DETAILS,'%d %s %d %d' % (self.game_id,self.available_maps_dict[map_id],len(self.game_dict[self.game_id]), player_number))
+                peerconn.send_data(DETAILS,'%d %s %d %d' % (self.game_id,self.available_maps_dict[map_id],len(self.game_dict[self.game_id]), player_number))
                 self.game_dict[self.game_id].append(data)
                 self.gameid_map_dict[self.game_id]=self.available_maps_dict[map_id]
     
@@ -362,7 +361,7 @@ class Game(object,BTPeer):
         else:
                 print "INFORM GAME START"
                 self.game_id=self.game_id+1
-                peerconn.senddata(REPLY,'OK')
+                peerconn.send_data(REPLY,'OK')
         
     #--------------------------------------------------------------------------
     def contactbootstrap(self,peername):
@@ -371,7 +370,7 @@ class Game(object,BTPeer):
          This function is called by all nodes when they want to start a game and it gets back all details for the game
         """
         host,port = self.bootstrap.split(":")
-        resp = self.connectandsend(host, port,GAME_START,peername)
+        resp = self.contact_peer_with_msg(host, port,GAME_START,peername)
         print len(resp),resp
         self.__debug(str(resp))
         if (resp[0][0] != DETAILS):
@@ -387,7 +386,7 @@ class Game(object,BTPeer):
             try:
                 try:
                     peerid,host,port = data.split()
-                    if peerid not in self.getpeerids() and peerid != self.myid:
+                    if peerid not in self.get_peers_list() and peerid != self.myid:
                         self.add_to_peer_dict(peerid, host, port)
                         self.__debug('added peer: %s' % peerid)
                     else:
@@ -407,7 +406,7 @@ class Game(object,BTPeer):
         data = self.game_id+" "+peername+" "+self.player_num
         for key in self.peers:
             host,port=self.peers[key][0],self.peers[key][1]
-            resp = self.connectandsend(host, port,PEER_INFO_DETAILS,data)
+            resp = self.contact_peer_with_msg(host, port,PEER_INFO_DETAILS,data)
             if (resp[0][0] !=PEER_INFO_DETAILS):
                 return
             gameid,peername,player_number= resp[0][1].split()
@@ -428,13 +427,13 @@ class Game(object,BTPeer):
         i=0
         for key in self.playernum_hostip_dict:
             host,port=self.playernum_hostip_dict[key].split(":")
-            resp = self.connectandsend(host, port,PLAY_START,data)
+            resp = self.contact_peer_with_msg(host, port,PLAY_START,data)
             if(resp[0][0]==REPLY):
                 i=i+1
         # print "ACKS NEEDED = " + str(len(self.playernum_hostip_dict)) +" ACKS RECEIVED = "+str(i)
         host,port = self.bootstrap.split(":")
         data="STARTED"
-        resp = self.connectandsend(host, port,GAME_START,data)
+        resp = self.contact_peer_with_msg(host, port,GAME_START,data)
     
     #--------------------------------------------------------------------------
     def showstartscreen_first(self):
@@ -494,7 +493,7 @@ class Game(object,BTPeer):
         their play_start variable to True which makes them exit the above "showstartscreen_rest" function and start the game
         """
         
-        peerconn.senddata(REPLY,'STARTED GAME')
+        peerconn.send_data(REPLY,'STARTED GAME')
         self.play_start=True
     
     #--------------------------------------------------------------------------    
@@ -506,13 +505,13 @@ class Game(object,BTPeer):
         gameid,peername,player_number= data.split()
         if(gameid!=self.game_id):
             print "wrong game. Something wrong with bootstrapping"
-            peerconn.senddata(ERROR, 'Game ID different %s' % self.game_id)
+            peerconn.send_data(ERROR, 'Game ID different %s' % self.game_id)
             return
         if(player_number in self.playernum_hostip_dict):
-            peerconn.senddata(ERROR, 'Player number already present %s' % self.game_id)
+            peerconn.send_data(ERROR, 'Player number already present %s' % self.game_id)
             return
         self.playernum_hostip_dict[player_number]=peername
-        peerconn.senddata(PEER_INFO_DETAILS,'%s %s %s' % (self.game_id,self.my_peer_name,self.player_num))
+        peerconn.send_data(PEER_INFO_DETAILS,'%s %s %s' % (self.game_id,self.my_peer_name,self.player_num))
     
     #--------------------------------------------------------------------------    
     def __handle_move(self,peerconn,data,peername):
@@ -546,10 +545,10 @@ class Game(object,BTPeer):
         self.peerlock.acquire()
         try:
             self.__debug('Listing peers %d' % self.numberofpeers())
-            peerconn.senddata(REPLY, '%d' % self.numberofpeers())
-            for pid in self.getpeerids():
+            peerconn.send_data(REPLY, '%d' % self.numberofpeers())
+            for pid in self.get_peers_list():
                 host,port = self.getpeer(pid)
-                peerconn.senddata(REPLY, '%s %s %d' % (pid, host, port))
+                peerconn.send_data(REPLY, '%s %s %d' % (pid, host, port))
         finally:
             self.peerlock.release()
             
@@ -557,7 +556,7 @@ class Game(object,BTPeer):
     def __handle_peername(self,peerconn,data,peername):
     #--------------------------------------------------------------------------    
         """ Handles the NAME message type. Message data is not used. """
-        peerconn.senddata(REPLY, self.myid)
+        peerconn.send_data(REPLY, self.myid)
     
     #--------------------------------------------------------------------------
     def main(self, screen):
@@ -567,17 +566,18 @@ class Game(object,BTPeer):
         """
         clock = pygame.time.Clock()
 
-        background = pygame.image.load('background.png')
+        background = pygame.image.load('title/background.png')
         self.tilemap = tmx.load(self.map, screen.get_size())
+        print "LOAD FINISHED"
         self.sprites = tmx.SpriteLayer()
         self.enemies = tmx.SpriteLayer()
         self.players_sp = tmx.SpriteLayer()
         self.blockwall = tmx.SpriteLayer()
         
-        start_cell = self.tilemap.layers['collision'].find('player')[int(self.player_num)-1]
+        start_cell = self.tilemap.layers['player'].find('player')[int(self.player_num)-1]
         self.player1 = player((start_cell.px, start_cell.py),self.player_num,self.players_sp)
         for entry in self.playernum_hostip_dict:
-            start_cell = self.tilemap.layers['collision'].find('player')[int(entry)-1]
+            start_cell = self.tilemap.layers['player'].find('player')[int(entry)-1]
             self.enemy[entry]=enemies((start_cell.px,start_cell.py),entry,self.enemies)
         
         self.tilemap.layers.append(self.sprites)
@@ -587,7 +587,7 @@ class Game(object,BTPeer):
         
 
         while 1:
-            dt=clock.tick(30)
+            dt=clock.tick(40)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return
@@ -612,4 +612,3 @@ if __name__=='__main__':
     if appl.bootstrap!=peerid:
         appl.main(appl.screen)
         appl.onDestroy()
-        
