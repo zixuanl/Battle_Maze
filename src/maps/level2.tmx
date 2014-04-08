@@ -933,4 +933,26 @@
    </properties>
   </object>
  </objectgroup>
+ <objectgroup name="flags" width="42" height="26" visible="0">
+  <object x="503" y="221" width="42" height="59">
+   <properties>
+    <property name="flag" value=""/>
+   </properties>
+  </object>
+  <object x="752" y="705" width="43" height="62">
+   <properties>
+    <property name="flag" value=""/>
+   </properties>
+  </object>
+  <object x="765" y="128" width="74" height="30">
+   <properties>
+    <property name="flag" value=""/>
+   </properties>
+  </object>
+  <object x="70" y="283" width="34" height="56">
+   <properties>
+    <property name="flag" value=""/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>

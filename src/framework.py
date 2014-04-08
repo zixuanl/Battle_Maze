@@ -25,16 +25,17 @@ class Communicate:
         self.peerlock = threading.Lock()  # ensure proper access to peers list (maybe better to use threading.RLock (reentrant))
         if serverport!=0:
             self.game_dict={}
-            self.available_maps_dict = {1:'maps/level2.tmx',2:'maps/level2.tmx',3:'maps/level2.tmx',4:'maps/level2.tmx'}
+            self.available_maps_dict = {1:'maps/level2.tmx',2:'maps/level3.tmx',3:'maps/level2.tmx',4:'maps/level3.tmx'}
             self.gameid_map_dict ={}
             self.game_id=1
             self.playernum_hostip_dict ={}
+            self.leader_list=[]
             
             self.peers = {}  # peerid ==> (host, port) mapping
             self.handlers = {}
-            self.leader = False
+            self.leader_num = 0
             self.play_start=False
-            self.bootstrap = "128.237.226.16:12345"
+            self.bootstrap = "128.237.116.164:12345"
             self.shutdown = False  # used to stop the main loop
             
             self.maxpeers = int(maxpeers)
@@ -248,24 +249,21 @@ class Communicate:
         s = self.setup_server_socket( self.serverport )
         self.__debug( 'Server started: %s (%s:%d)'
                   % ( self.myid, self.serverhost, self.serverport ) )
-        
         while not self.shutdown:
             try:
                 self.__debug( 'Listening for connections...' )
+                s.settimeout(10)
                 clientsock, clientaddr = s.accept()
-                clientsock.settimeout(None)
-    
+                
                 t = threading.Thread( target = self.__connection_handler,args = [ clientsock ] )
                 t.start()
             except KeyboardInterrupt:
-                print 'KeyboardInterrupt: stopping mainloop'
                 self.shutdown = True
                 continue
             except:
                 if self.debug:
                     traceback.print_exc()
                     continue
- 
         self.__debug( 'Main loop exiting' )
         s.close()
 # end Communicate class
