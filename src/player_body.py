@@ -45,30 +45,68 @@ class player(pygame.sprite.Sprite,Communicate):
         self.guncooldown=0
         self.blockwallcooldown=0
         self.firecount=5
+    
+    def update2(self,game,message_type,data):
+            game.tilemap.set_focus(self.rect.x, self.rect.y)
         
-    def update(self,dt,game):
+    def update(self, dt, game):
         if player.game_over=='true':
             game.show_loser_screen()
             self.kill()
         key=pygame.key.get_pressed()
+        #print 'here'
         last_position = self.rect.copy()
-        if key[pygame.K_RIGHT]:
-            self.rect.x+=10
-            self.image=self.right_image
-            self.direction=1
+        
+        message_type = game.message_type
+        data = game.message_data
+        #print data
+        if message_type == MOVE:
+            x, y, direction, player_num = data.split(' ')
+            print x, y, direction, player_num
+            if (game.player_num == player_num):
+                self.rect.x = int(x)
+                self.rect.y = int(y)
+                if int(direction) == 1:
+                    self.image = self.right_image
+                    self.direction = 1
+                elif int(direction) == -1:
+                    self.image = self.left_image
+                    self.direction = -1
+                elif int(direction) == 2:
+                    self.image=self.up_image
+                    self.direction = 2
+                elif int(direction) == -2:
+                    self.image = self.down_image
+                    self.direction = -2
+            
+            
+        elif key[pygame.K_RIGHT]:
+            #self.rect.x+=10
+            #self.image=self.right_image
+            #self.direction=1
+            data = str(self.rect.x + 10) + " " + str(self.rect.y) + " " + str(1) + " " + str(game.player_num)
+            game.multicast_to_peers_data(MOVE, data)
         elif key[pygame.K_LEFT]:
-            self.rect.x-=10
-            self.image=self.left_image
-            self.direction=-1
+            #self.rect.x-=10
+            #self.image=self.left_image
+            #self.direction=-1
+            data = str(self.rect.x - 10) + " " + str(self.rect.y) + " " + str(-1) + " " + str(game.player_num)
+            game.multicast_to_peers_data(MOVE, data)
         elif key[pygame.K_UP]:
-            self.rect.y-=10
-            self.image=self.up_image
-            self.direction=2
+            #self.rect.y-=10
+            #self.image=self.up_image
+            #self.direction=2
+            data = str(self.rect.x) + " " + str(self.rect.y - 10) + " " + str(2) + " " + str(game.player_num)
+            game.multicast_to_peers_data(MOVE, data)
         elif key[pygame.K_DOWN]:
-            self.rect.y+=10
-            self.image=self.down_image
-            self.direction=-2
-        elif key[pygame.K_SPACE] and not self.guncooldown:
+            #self.rect.y+=10
+            #self.image=self.down_image
+            #self.direction=-2
+            data = str(self.rect.x) + " " + str(self.rect.y + 10) + " " + str(-2) + " " + str(game.player_num)
+            game.multicast_to_peers_data(MOVE, data)
+        
+        
+        '''if key[pygame.K_SPACE] and not self.guncooldown:
             if self.direction==2:
                 bullet(self.rect.midtop,2,game.sprites)
             elif self.direction==-2:
@@ -91,7 +129,7 @@ class player(pygame.sprite.Sprite,Communicate):
                 fire(self.rect.midright,1,game.sprites)
             self.blockwallcooldown=1
             self.firecount-=1
-        self.blockwallcooldown=max(0,self.blockwallcooldown-dt)
+        self.blockwallcooldown=max(0,self.blockwallcooldown-dt)'''
         if pygame.sprite.spritecollide(self, game.blockwall,False):
             self.rect=last_position
         new = self.rect

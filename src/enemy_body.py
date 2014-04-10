@@ -56,6 +56,28 @@ class enemies(pygame.sprite.Sprite,Communicate):
         key=pygame.key.get_pressed()
         last_position = self.rect.copy()
         
+        message_type = game.message_type
+        data = game.message_data
+        #print data
+        if message_type == MOVE:
+            x, y, direction, player_num = data.split(' ')
+            if (game.player_num != player_num):
+                print 'enemy:', x, y, direction
+                self.rect.x = int(x)
+                self.rect.y = int(y)
+                if int(direction) == 1:
+                    self.image = self.right_image
+                    self.direction = 1
+                elif int(direction) == -1:
+                    self.image = self.left_image
+                    self.direction = -1
+                elif int(direction) == 2:
+                    self.image=self.up_image
+                    self.direction = 2
+                elif int(direction) == -2:
+                    self.image = self.down_image
+                    self.direction = -2
+        
         if key[pygame.K_d]:
             self.rect.x+=10
             self.image=self.right_image
@@ -69,9 +91,11 @@ class enemies(pygame.sprite.Sprite,Communicate):
             self.image=self.up_image
             self.direction=2
         elif key[pygame.K_s]:
-            self.rect.y+=10
-            self.image=self.down_image
-            self.direction=-2
+            #self.rect.y+=10
+            #self.image=self.down_image
+            #self.direction=-2
+            data = str(self.rect.x) + " " + str(self.rect.y + 10) + " " + str(-2) + " " + str(game.player_num)
+            game.multicast_to_peers_data(MOVE, data)
         elif key[pygame.K_r] and not self.guncooldown:
             if self.direction==2:
                 bullet(self.rect.midtop,2,game.sprites)

@@ -23,6 +23,7 @@ PLAYER_LIST="PLAY"
 INSERTPEER = "JOIN"
 MOVE = "MOVE"
 FIRE = "FIRE"
+UPDATE = "UPDA"
 OBSTACLE = "OBST"
 PEERQUIT = "QUIT"
 REPLY = "REPL"
@@ -56,11 +57,18 @@ class Game(object,Communicate):
         """
         handlers = {
                     LISTPEERS : self.__handle_listpeers,INSERTPEER : self.__handle_insertpeer,
-                    PEERNAME: self.__handle_peername,MOVE: self.__handle_move,
-                    FIRE: self.__handle_fire,OBSTACLE: self.__handle_obstacle,
-                    PEERQUIT: self.__handle_quit,GAME_START: self.__handle_gamestart,
-                    PEER_INFO_DETAILS: self.__peer_info_details,PLAY_START: self.__play_start,I_WIN:self.__handle_game_end_peers,
-                    INFORM_GAME_END_BOOTSTRAP: self.__handle_game_end_bootstrap,LEAVING:self.__handle_player_leaving_gracious
+                    PEERNAME: self.__handle_peername,
+                    MOVE: self.__handle_move,
+                    FIRE: self.__handle_fire,
+                    OBSTACLE: self.__handle_obstacle,
+                    UPDATE: self.__handle_update,
+                    PEERQUIT: self.__handle_quit,
+                    GAME_START: self.__handle_gamestart,
+                    PEER_INFO_DETAILS: self.__peer_info_details,
+                    PLAY_START: self.__play_start,
+                    I_WIN:self.__handle_game_end_peers,
+                    INFORM_GAME_END_BOOTSTRAP: self.__handle_game_end_bootstrap,
+                    LEAVING:self.__handle_player_leaving_gracious
                     }
         for mt in handlers:
             self.add_event_handler(mt, handlers[mt])
@@ -73,6 +81,10 @@ class Game(object,Communicate):
         self.enemy={} # list of all other players objects that are instanciated later
         self.flag_list={}
         self.flags_collected=0
+        
+        self.message_data = 'test'
+        self.message_type = 'test'
+        
         
         host,port = firstpeer.split(':')
         self.t = threading.Thread( target = self.mainloop, args = [] )
@@ -99,6 +111,8 @@ class Game(object,Communicate):
                 self.leader_num=self.leader_list[0]
                 print "LEADER_LIST , LEADER_NUM"
                 print self.leader_list , self.leader_num
+            
+            self.playernum_hostip_dict[self.player_num]=self.my_peer_name
                 
      
     #--------------------------------------------------------------------------
@@ -189,7 +203,17 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------    
     def __handle_move(self,peerconn,data,peername):
     #--------------------------------------------------------------------------    
-        print ""
+        print "handling move ...", data, self.player_num
+        #self.player1.update2(self, MOVE, data)
+        self.message_type = MOVE
+        self.message_data = data
+        self.tilemap.update(self.dt / 1000.,self)
+        self.screen.blit(self.background, (0, 0))
+        self.tilemap.draw(self.screen)
+        pygame.display.flip()
+        self.message_type = 'test'
+        self.message_data = 'test'
+        
     
     #--------------------------------------------------------------------------    
     def __handle_fire(self,peerconn,data,peername):
@@ -201,6 +225,11 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------    
         print ""
         
+    #--------------------------------------------------------------------------    
+    def __handle_update(self,peerconn,data,peername):
+    #--------------------------------------------------------------------------    
+        print "handling update ...", data
+    
     #--------------------------------------------------------------------------    
     def __handle_quit(self,peerconn,data,peername):
     #--------------------------------------------------------------------------    
@@ -351,10 +380,13 @@ class Game(object,Communicate):
         This function is a common handler thats used to multicast messages to different players in the game. The messages
         can be of different types and are differentiated with a switch case
         """
+        #print "multicast"
         if messagetype==PEER_INFO_DETAILS:
             data = self.game_id+" "+peername+" "+self.player_num
+            print 'data:', data
             for key in self.peers:
                 host,port=self.peers[key][0],self.peers[key][1]
+                print host, port
                 resp = self.contact_peer_with_msg(host, port,messagetype,data)
                 if (resp[0][0] !=PEER_INFO_DETAILS):
                     return
@@ -363,6 +395,15 @@ class Game(object,Communicate):
                 self.leader_list.append(player_number)
                 print "LOCAL PLAYER DICTIONARY"
                 print self.playernum_hostip_dict
+        
+        if messagetype==UPDATE:
+            data = "need update"
+            #print 'message data:', data
+            for key in self.playernum_hostip_dict:
+                value = self.playernum_hostip_dict[key].split(":")
+                host,port = value[0],value[1]
+                print "Contacting peer", (host, port)
+                resp = self.contact_peer_with_msg(host, port,messagetype,data) 
         
         elif messagetype==I_WIN:
             data = self.game_id+" "+self.my_peer_name+" "+self.player_num
@@ -381,6 +422,8 @@ class Game(object,Communicate):
             Game.show_winner_screen(self)       
             pygame.quit()
             sys.exit()
+        
+        
             
         elif messagetype==PLAY_START:
             data = "START GAME"
@@ -408,6 +451,14 @@ class Game(object,Communicate):
                 resp = self.contact_peer_with_msg(host, port, messagetype, data,None, False)
                 self.contactbootstrap(LEAVING,self.my_peer_name)
                 #contact bootstrap and inform that you are leaving here
+                
+    def multicast_to_peers_data(self,messagetype,data):
+        if messagetype == MOVE:
+            for key in self.playernum_hostip_dict:
+                    value = self.playernum_hostip_dict[key].split(":")
+                    host,port = value[0],value[1]
+                    print "Contacting peer", (host, port)
+                    resp = self.contact_peer_with_msg(host, port,messagetype,data) 
     
 
     """--------------------------------------------END NODE CONTACT FUNCTIONS---------------------------------"""
@@ -543,7 +594,8 @@ class Game(object,Communicate):
         """
         clock = pygame.time.Clock()
 
-        background = pygame.image.load('title/background.png')
+        self.background = pygame.image.load('title/background.png')
+        self.screen = screen
         self.tilemap = tmx.load(self.map, screen.get_size())
         self.sprites = tmx.SpriteLayer()
         self.enemies = tmx.SpriteLayer()
@@ -569,7 +621,7 @@ class Game(object,Communicate):
         self.tilemap.layers.append(self.flag_layer)
         
         while 1:
-            dt=clock.tick(40)
+            self.dt=clock.tick(30)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return
@@ -582,10 +634,15 @@ class Game(object,Communicate):
             if (self.flags_collected==len(self.playernum_hostip_dict)+1):
                 #self.inform_game_end()
                 self.multicast_to_peers(I_WIN,self.my_peer_name)
-            self.tilemap.update(dt / 1000.,self)
-            screen.blit(background, (0, 0))
+            self.tilemap.update(self.dt / 1000.,self)
+            screen.blit(self.background, (0, 0))
             self.tilemap.draw(screen)
-            pygame.display.flip()        
+            pygame.display.flip()
+            
+            self.leader_num=self.leader_list[0]
+            #if (self.leader_list[0] == self.leader_num):
+                #print "I am leader, sending update message..."
+                #self.multicast_to_peers(UPDATE,self.my_peer_name)
 
 if __name__=='__main__':
     if len(sys.argv) < 4:

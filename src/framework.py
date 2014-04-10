@@ -35,7 +35,7 @@ class Communicate:
             self.handlers = {}
             self.leader_num = 0
             self.play_start=False
-            self.bootstrap = "128.237.116.164:12345"
+            self.bootstrap = "128.237.215.65:12345"
             self.shutdown = False  # used to stop the main loop
             
             self.maxpeers = int(maxpeers)
@@ -204,6 +204,7 @@ class Communicate:
                 while (onereply != (None,None)):
                     msgreply.append( onereply )
                     self.__debug( 'Got reply %s: %s' % ( pid, str(msgreply)))
+                    print str(msgreply)
                     onereply = peerconn.receive_data()
             peerconn.close()
         except KeyboardInterrupt:
