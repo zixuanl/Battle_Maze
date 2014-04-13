@@ -15,7 +15,7 @@ import game_elements
 from game_elements import *
 import enemy_body
 from enemy_body import *
-
+import txtlib
 
 PEERNAME = "NAME"   # request a peer's canonical id
 LISTPEERS = "LIST"
@@ -70,7 +70,7 @@ class Game(object,Communicate):
         self.number_peers=0 # This is the number of peers returned by the bootstrap node
         self.player_num=-1 # The player_num returned by the bootstrap node
         self.my_peer_name=firstpeer # Your own host:port 
-        self.enemy={} # list of all other players objects that are instanciated later
+        self.enemy={} # list of all other players objects that are created later
         self.flag_list={}
         self.flags_collected=0
         
@@ -82,7 +82,7 @@ class Game(object,Communicate):
         if firstpeer!=self.bootstrap:
             self.contactbootstrap(GAME_START,firstpeer) #contact bootstrap to get required information
             pygame.init()
-            self.screen = pygame.display.set_mode((1024, 624))
+            self.screen = pygame.display.set_mode((1034, 624))
             # The first node to join the game is given the option to start the game. All others wait for him to start
             if int(self.number_peers) > 0:
                 #self.contactpeers(firstpeer)
@@ -94,9 +94,7 @@ class Game(object,Communicate):
                 #self.convey_play_start(firstpeer)
                 self.multicast_to_peers(PLAY_START,self.my_peer_name)
                 self.play_start=True
-            if len(self.leader_list)>0:
-                self.leader_list.sort()
-                self.leader_num=self.leader_list[0]
+                self.sort_and_assign_leader()
                 print "LEADER_LIST , LEADER_NUM"
                 print self.leader_list , self.leader_num
                 
@@ -131,6 +129,7 @@ class Game(object,Communicate):
         """
         # This condition is hit when nodes require initial set up details
         if data!="STARTED":
+            self.game_dict_lock.acquire()
             #Check if there is already a game with lesser than 4 users. If so add the user to it. If not create new game
             if(self.game_id in self.game_dict):
                 player_number = len(self.game_dict[self.game_id])+1
@@ -143,6 +142,7 @@ class Game(object,Communicate):
                         self.game_id=self.game_id+1
                 print "Game dictionary is :"
                 print self.game_dict[self.game_id]
+            
             #create new game for the given game-id and add user to it
             else:
                 map_id=random.randint(1, 4)
@@ -154,6 +154,8 @@ class Game(object,Communicate):
                 self.gameid_map_dict[self.game_id]=self.available_maps_dict[map_id]
                 print "Game dictionary is :"
                 print self.game_dict[self.game_id]
+            self.game_dict_lock.release()
+        #this condition is hit when a game is started with < 4 players
         else:
                 self.game_id=self.game_id+1
                 peerconn.send_data(REPLY,'OK')
@@ -179,10 +181,13 @@ class Game(object,Communicate):
             print "wrong game. Something wrong with bootstrapping"
             peerconn.send_data(ERROR, 'Game ID different %s' % self.game_id)
             return
+        self.playernum_hostip_dict_lock.acquire()
         if(player_number in self.playernum_hostip_dict):
             peerconn.send_data(ERROR, 'Player number already present %s' % self.game_id)
             return
         self.playernum_hostip_dict[player_number]=peername
+        self.playernum_hostip_dict_lock.release()
+        
         self.leader_list.append(player_number)
         peerconn.send_data(PEER_INFO_DETAILS,'%s %s %s' % (self.game_id,self.my_peer_name,self.player_num))
     
@@ -223,7 +228,7 @@ class Game(object,Communicate):
         game id. This is implemented before the self.play_start variable is set to true.
         
         When a player exits in the middle of the game , we inform all the peers and we also inform the bootstrap node.
-        The players object has to be removed from the screen accorindgly. The player needs to be removed from the game_dict
+        The players object has to be removed from the screen accordingly. The player needs to be removed from the game_dict
         too. Flags collected by the player have to be replayed back. This is implemented after the self.play_start=true   
         """  
         players_game_id,peer_name,player_num= data.split(" ") 
@@ -233,21 +238,27 @@ class Game(object,Communicate):
                 if players_game_id == self.game_id:
                     try:
                         self.playernum_hostip_dict.pop(player_num)
+                        self.leader_list.remove(player_num)
+                        self.sort_and_assign_leader()
                         print self.playernum_hostip_dict
                     except KeyError:
                         print "Key not found"
             elif self.my_peer_name==self.bootstrap:
+                    self.game_dict_lock.acquire()
                     if peer_name in self.game_dict[int(players_game_id)]:
                         print self.game_dict[int(players_game_id)]
                         if len(self.game_dict[int(players_game_id)])==4:
                             self.game_id=self.game_id-1
                         self.game_dict[int(players_game_id)].remove(peer_name)
                         print self.game_dict[int(players_game_id)]
+                    self.game_dict_lock.release()
         elif self.play_start==True:
             if self.my_peer_name!=self.bootstrap:
                 if players_game_id == self.game_id:
                     try:
                         self.playernum_hostip_dict.pop(player_num)
+                        self.leader_list.remove(player_num)
+                        self.sort_and_assign_leader()
                         print self.playernum_hostip_dict
                     except KeyError:
                         print "Key not found"
@@ -266,9 +277,11 @@ class Game(object,Communicate):
         print self.playernum_hostip_dict
         gameid,winnername,winnerid=data.split(" ")
         if(gameid==self.game_id):
+            self.playernum_hostip_dict_lock.acquire()
             if(self.playernum_hostip_dict[winnerid]==winnername):
                 peerconn.send_data(I_LOST,'%s' %self.my_peer_name)
                 player.game_over='true'
+            self.playernum_hostip_dict_lock.release()
                 
     def __handle_game_end_bootstrap(self,peerconn,data,peername):
         gameid,winnername,winnerid=data.splot(" ")
@@ -280,7 +293,7 @@ class Game(object,Communicate):
     def __handle_listpeers(self, peerconn, data,peername):
         #--------------------------------------------------------------------------
         """ Handles the LISTPEERS message type. Message data is not used. """
-        self.peerlock.acquire()
+        self.peers_list_lock.acquire()
         try:
             self.__debug('Listing peers %d' % self.numberofpeers())
             peerconn.send_data(REPLY, '%d' % self.numberofpeers())
@@ -288,7 +301,7 @@ class Game(object,Communicate):
                 host,port = self.getpeer(pid)
                 peerconn.send_data(REPLY, '%s %s %d' % (pid, host, port))
         finally:
-            self.peerlock.release()
+            self.peers_list_lock.release()
             
     #--------------------------------------------------------------------------
     def __handle_peername(self,peerconn,data,peername):
@@ -325,7 +338,7 @@ class Game(object,Communicate):
                 if (resp[x][0] != PLAYER_LIST):
                     return 
                 data=resp[x][1]
-                self.peerlock.acquire()
+                self.peers_list_lock.acquire()
                 try:
                     try:
                         peerid,host,port = data.split()
@@ -337,7 +350,7 @@ class Game(object,Communicate):
                     except:
                         self.__debug('invalid insert %s: %s' % (str(12345), data))
                 finally:
-                    self.peerlock.release()
+                    self.peers_list_lock.release()
         elif messagetype==LEAVING:
             print "In contact bootstrap"
             data=self.game_id+" "+self.my_peer_name+" "+self.player_num 
@@ -353,6 +366,7 @@ class Game(object,Communicate):
         """
         if messagetype==PEER_INFO_DETAILS:
             data = self.game_id+" "+peername+" "+self.player_num
+            self.peers_list_lock.acquire()
             for key in self.peers:
                 host,port=self.peers[key][0],self.peers[key][1]
                 resp = self.contact_peer_with_msg(host, port,messagetype,data)
@@ -363,12 +377,13 @@ class Game(object,Communicate):
                 self.leader_list.append(player_number)
                 print "LOCAL PLAYER DICTIONARY"
                 print self.playernum_hostip_dict
-        
+            self.peers_list_lock.release()
+            
         elif messagetype==I_WIN:
             data = self.game_id+" "+self.my_peer_name+" "+self.player_num
             acknowledgements = 0
-            temp_dict = self.playernum_hostip_dict
             if len(self.playernum_hostip_dict)!=0:
+                self.playernum_hostip_dict_lock.acquire()
                 for key in self.playernum_hostip_dict:
                     value = self.playernum_hostip_dict[key].split(":")
                     host,port = value[0],value[1]
@@ -376,6 +391,7 @@ class Game(object,Communicate):
                     if resp[0][0]!=I_LOST:
                         return
                     acknowledgements = acknowledgements +1
+                self.playernum_hostip_dict_lock.release()
             host,port=self.bootstrap.split(":")
             self.contact_peer_with_msg(host,port,INFORM_GAME_END_BOOTSTRAP,data)     
             Game.show_winner_screen(self)       
@@ -385,11 +401,13 @@ class Game(object,Communicate):
         elif messagetype==PLAY_START:
             data = "START GAME"
             i=0
+            self.playernum_hostip_dict_lock.acquire()
             for key in self.playernum_hostip_dict:
                 host,port=self.playernum_hostip_dict[key].split(":")
                 resp = self.contact_peer_with_msg(host, port,messagetype,data)
                 if(resp[0][0]==REPLY):
                     i=i+1
+            self.playernum_hostip_dict_lock.release()
             host,port = self.bootstrap.split(":")
             data="STARTED"
             resp = self.contact_peer_with_msg(host, port,GAME_START,data)
@@ -403,20 +421,23 @@ class Game(object,Communicate):
         elif messagetype==LEAVING:
             print "Leaving message sent"
             data=self.game_id+" "+self.my_peer_name+" "+self.player_num
+            self.playernum_hostip_dict_lock.acquire()
             for key in self.playernum_hostip_dict:
                 host,port=self.playernum_hostip_dict[key].split(":")
                 resp = self.contact_peer_with_msg(host, port, messagetype, data,None, False)
                 self.contactbootstrap(LEAVING,self.my_peer_name)
                 #contact bootstrap and inform that you are leaving here
-    
+            self.playernum_hostip_dict_lock.release()
 
     """--------------------------------------------END NODE CONTACT FUNCTIONS---------------------------------"""
 
-
-    
-
-                     
-
+    def sort_and_assign_leader(self):
+        self.leader_list_lock.acquire()
+        if len(self.leader_list)>0:
+                self.leader_list.sort()
+                self.leader_num=self.leader_list[0]
+        self.leader_list_lock.release()
+          
     """--------------------------------------------ALL SCREEN DISPLAY FUNCTIONS---------------------------------"""
     
     #--------------------------------------------------------------------------
@@ -427,7 +448,7 @@ class Game(object,Communicate):
          saying "press space to accept and start"
         """
         background=pygame.image.load("title/battlemaze_leader.png").convert()
-        background = pygame.transform.scale(background, (1024,624))
+        background = pygame.transform.scale(background, (1034,624))
         font = pygame.font.Font('freesansbold.ttf', 20)
         hosts="Hosts Joined : "
         while 1:
@@ -441,7 +462,7 @@ class Game(object,Communicate):
                         self.__onDestroy()
                         sys.exit()
             for key in self.playernum_hostip_dict:
-                hosts =hosts+str(self.playernum_hostip_dict[key])+" "
+                hosts =hosts+str(self.playernum_hostip_dict[key])+" || "
             text = font.render(hosts, True,(178,34,34),(46,139,87))
             textpos = text.get_rect()
             textpos.bottomleft = background.get_rect().bottomleft
@@ -459,7 +480,7 @@ class Game(object,Communicate):
         saying "awaiting approval". Once the first node in the game presses space, this function exits.
         """
         background=pygame.image.load("title/battlemaze_peers.png").convert()
-        background = pygame.transform.scale(background, (1024,624))
+        background = pygame.transform.scale(background, (1034,624))
         font = pygame.font.Font('freesansbold.ttf', 20)
         hosts="Hosts Joined : "
         while self.play_start!=True:
@@ -471,7 +492,7 @@ class Game(object,Communicate):
                         self.__onDestroy()
                         sys.exit()
             for key in self.playernum_hostip_dict:
-                hosts =hosts+str(self.playernum_hostip_dict[key])+" "
+                hosts =hosts+str(self.playernum_hostip_dict[key])+" || "
             text = font.render(hosts, True,(178,34,34),(46,139,87))
             textpos = text.get_rect()
             textpos.bottomleft=background.get_rect().bottomleft
@@ -487,14 +508,15 @@ class Game(object,Communicate):
         This is the winner display screen , once the game gets over
         """
         background=pygame.image.load("title/you_win.png").convert()
-        background = pygame.transform.scale(background, (1024,624))
+        background = pygame.transform.scale(background, (1034,624))
         font = pygame.font.Font('freesansbold.ttf', 20)
-        message="Press escape to exit"
+        message="Press Space to exit"
         while 1:
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
                     if event.key == pygame.K_SPACE:
                         pygame.quit()
+                        self.__onDestroy()
                         sys.exit()
                         return
             text = font.render(message, True,(178,34,34),(46,139,87))
@@ -511,14 +533,15 @@ class Game(object,Communicate):
         This screen gets displayed for every loser in the game
         """
         background=pygame.image.load("title/game_over.png").convert()
-        background = pygame.transform.scale(background, (1024,624))
+        background = pygame.transform.scale(background, (1034,624))
         font = pygame.font.Font('freesansbold.ttf', 20)
-        message="Press escape to exit"
+        message="Press Space to exit"
         while 1:
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
                     if event.key == pygame.K_SPACE:
                         pygame.quit()
+                        self.__onDestroy()
                         sys.exit()
                         return
             text = font.render(message, True,(178,34,34),(46,139,87))
@@ -529,7 +552,21 @@ class Game(object,Communicate):
             pygame.display.flip()
       
 
-    """--------------------------------------------End SCREEN DISPLAY FUNCTIONS---------------------------------"""
+    #--------------------------------------------------------------------------
+    def show_on_screen_messages(self):
+    #--------------------------------------------------------------------------
+        data1="             PLAYER LIST\n\n"
+        for key in self.playernum_hostip_dict:
+            data1 = data1+ str(key)+"    "+str(self.playernum_hostip_dict[key])+"\n\n"
+        
+        self.player_surface.text=data1
+        self.player_surface.update()
+        
+        data2="             MESSAGES\n\n"
+        self.message_surface.text=data2
+        self.message_surface.update()
+    
+        """--------------------------------------------End SCREEN DISPLAY FUNCTIONS---------------------------------"""
       
    
    
@@ -541,17 +578,21 @@ class Game(object,Communicate):
         """
         The main function that actually starts the game
         """
-        clock = pygame.time.Clock()
-
-        background = pygame.image.load('title/background.png')
-        self.tilemap = tmx.load(self.map, screen.get_size())
+        self.player_surface = txtlib.Text((200, 300), 'freesans',21)
+        self.message_surface= txtlib.Text((200, 308), 'freesans',21)
+        self.game_surface = pygame.Surface((824,624))
+        
+        self.tilemap = tmx.load(self.map, self.game_surface.get_size())
         self.sprites = tmx.SpriteLayer()
         self.enemies = tmx.SpriteLayer()
         self.players_sp = tmx.SpriteLayer()
         self.blockwall = tmx.SpriteLayer()
         self.flag_layer = tmx.SpriteLayer()
-        print "PLayer_host"
-        print self.playernum_hostip_dict
+        
+        background = pygame.image.load('title/background.jpg').convert()
+        background = pygame.transform.scale(background, (210,624))
+        screen.blit(background,(0,0))
+        pygame.display.flip()
         
         start_cell = self.tilemap.layers['player'].find('player')[int(self.player_num)-1]
         flag_cell = self.tilemap.layers['flags'].find('flag')[int(self.player_num)-1]
@@ -562,14 +603,16 @@ class Game(object,Communicate):
             flag_cell = self.tilemap.layers['flags'].find('flag')[int(entry)-1]
             self.enemy[entry]=enemies((start_cell.px,start_cell.py),entry,self.enemies)
             self.flag_list[entry]=flags((flag_cell.px,flag_cell.py),self.flag_layer)
+        
         self.tilemap.layers.append(self.sprites)
         self.tilemap.layers.append(self.blockwall)
         self.tilemap.layers.append(self.enemies)
         self.tilemap.layers.append(self.players_sp)
         self.tilemap.layers.append(self.flag_layer)
         
+        clock = pygame.time.Clock()
         while 1:
-            dt=clock.tick(40)
+            dt=clock.tick(30)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return
@@ -579,12 +622,19 @@ class Game(object,Communicate):
                     self.__onDestroy()
                     sys.exit()
                     return
+            # if all the flags have been collected , convey that you win the game
             if (self.flags_collected==len(self.playernum_hostip_dict)+1):
-                #self.inform_game_end()
                 self.multicast_to_peers(I_WIN,self.my_peer_name)
+            
             self.tilemap.update(dt / 1000.,self)
-            screen.blit(background, (0, 0))
-            self.tilemap.draw(screen)
+            self.tilemap.draw(self.game_surface)
+            #used to update the player list tab on the left with the right message contents
+            self.show_on_screen_messages()
+            
+            screen.blit(self.game_surface,(210,0))
+            screen.blit(self.player_surface.area, (5, 5))
+            screen.blit(self.message_surface.area,(5,310))
+            
             pygame.display.flip()        
 
 if __name__=='__main__':

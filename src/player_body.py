@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import sys
+import math
 import threading
 from Tkinter import *
 from random import *
@@ -30,6 +31,41 @@ I_WIN = "IWIN"
 I_LOST="LOST"
 INFORM_GAME_END_BOOTSTRAP="OVER"
 
+class Vector():
+    '''
+        Class:
+            creates operations to handle vectors such
+            as direction, position, and speed
+        '''
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __str__(self): # used for printing vectors
+        return "(%s, %s)"%(self.x, self.y)
+
+    def __getitem__(self, key):
+        if key == 0:
+            return self.x
+        elif key == 1:
+            return self.y
+        else:
+            raise IndexError("This "+str(key)+" key is not a vector key!")
+
+    def __sub__(self, o): # subtraction
+        return Vector(self.x - o.x, self.y - o.y)
+
+    def length(self): # get length (used for normalize)
+        return math.sqrt((self.x**2 + self.y**2)) 
+
+    def normalize(self): # divides a vector by its length
+        l = self.length()
+        if l != 0:
+            return (self.x / l, self.y / l)
+        return None
+
+
+
 class player(pygame.sprite.Sprite,Communicate):
     game_over='false'
     def __init__(self, location,player_num,*groups):
@@ -40,18 +76,20 @@ class player(pygame.sprite.Sprite,Communicate):
         self.left_image = pygame.image.load(self.player_tank_map[player_num]['left'])
         self.right_image = pygame.image.load(self.player_tank_map[player_num]['right'])
         self.down_image = pygame.image.load(self.player_tank_map[player_num]['down'])
+        
         self.direction = 2
         self.rect=pygame.rect.Rect(location,(self.image.get_width()-4,self.image.get_height()-4))
         self.guncooldown=0
         self.blockwallcooldown=0
         self.firecount=5
-        
+    
     def update(self,dt,game):
         if player.game_over=='true':
             game.show_loser_screen()
             self.kill()
         key=pygame.key.get_pressed()
         last_position = self.rect.copy()
+        
         if key[pygame.K_RIGHT]:
             self.rect.x+=10
             self.image=self.right_image

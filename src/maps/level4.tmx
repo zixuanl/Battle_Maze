@@ -1,0 +1,1017 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="94" height="63" tilewidth="16" tileheight="16">
+ <tileset firstgid="1" name="level_4" tilewidth="16" tileheight="16">
+  <image source="map_tiles/level_4.png" width="960" height="960"/>
+ </tileset>
+ <tileset firstgid="3601" name="components" tilewidth="16" tileheight="16">
+  <image source="map_tiles/components.png" width="80" height="64"/>
+ </tileset>
+ <tileset firstgid="3621" name="grass" tilewidth="16" tileheight="16">
+  <image source="map_tiles/grass.png" width="656" height="580"/>
+ </tileset>
+ <layer name="background" width="94" height="63">
+  <data encoding="base64" compression="zlib">
+   eJztmn1S3DAMxblBDrGUFspRdlvKx1GWj9LNVShtD1oxg6epx0mekmfLyeqPN8OAUOyfbFlWsmlOTk5FH0Rnoo+iT6Jz0YXos+hStHG7XruUxv53CfOq2W6bkHPPY4f6cO7Hx72tgJNzr5vnmriv0c65O/djsnPuzv2Y7EpxR59zVymntXNvK+W0du6oHWKL+rLIlwzuFmvJudtxf+vb7URfRF9FV6JvomvRjXPPxn0vuhc9iB5FT6LvomfRD+e+mDxTsu/t3P/9vC/IHY3x5RFwR5/P2BdojJ07f1+g40vVDLekMSyJO2rHGl+qZjg49+zcp84/B3ekj7MW7jHvO3D+Vj3LKfNi1pJjNmP3vtt3vjHztsH7WDVzz3FmhrpniOvYve/wzneIAWtPWXNn+ka4bhNCx43Y1sw93teMtYz62je6Wj4XAwvuzxPmjbJixWeN3HPOG83hmvo5F/dS9UR4pmbeNayRHPV7yTpuidzbDntmnitZx4VnLo17C/rdNHieK13Hae4gNXAPYw5nEiLmGafxifBfGvewVoJS94Bto+Pk3PE8GrTvUfg7q5Z17v/z7Zuf5k6GxprJHV0TU+46ubizzy401kzu6Bk85a6Ti7vFXVRjx74zBjvnbsOdfV45d+y5zPPakrumN1QDd5ZdDdxRX5qaht2LzdHnsuSuqQ01NY3Fetf2uSy5a2pDyx44i8mQTelzVZvjkRzi3PPnxVrqrbVy1/SMaz1Xl8odZWWVZ+bUzbVy17Cy4I70vmvijuQE7dnL5o7Uu0htVhP3FKMp99iumNw1d7slcdfMK1b4TjZ+18XsozDf35TijuzPLWjXrSeDQp8/fteFrHWUpcbnnL6IRZ7RfMuRkuY7gm6s0O8dNNyH5jG0d6zuJYjifNLdK9oYaOp3zR4a8qnpi8zNM0it0sczlbeH3qGjuV37HhL1GcYyNGc0v6V+r8mNyPvlPp5o3tbYTs3xY/52JPWN5dDzN9ZzSygeP8PPPUFj/EtzCTFPjS+Hf1Td9f9CUJ/vsLcYsUXjntJc/6k5We/BXRSDn6JX0S/Rb9EfUmzRuKc0139qTrnXEmN9/AWPCRiW
+  </data>
+ </layer>
+ <layer name="foreground" width="94" height="63">
+  <data encoding="base64" compression="zlib">
+   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
+  </data>
+ </layer>
+ <objectgroup name="collision" width="94" height="63" visible="0">
+  <object x="49" y="16" width="1406" height="11">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="49" y="37" width="11" height="938">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="64" y="82" width="253" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="307" y="96" width="11" height="172">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="212" y="260" width="102" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="102" y="132" width="167" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="211" y="141" width="10" height="123">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="260" y="179" width="46" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="259" y="193" width="10" height="29">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="99" y="179" width="73" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="99" y="192" width="8" height="235">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="110" y="356" width="302" height="23">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="150" y="229" width="22" height="85">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="171" y="308" width="192" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="110" y="387" width="13" height="41">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="403" y="67" width="553" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="356" y="33" width="8" height="91">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="365" y="116" width="94" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="500" y="81" width="8" height="91">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="356" y="164" width="146" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="356" y="177" width="10" height="93">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="404" y="176" width="8" height="178">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="511" y="115" width="486" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="548" y="163" width="407" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="548" y="177" width="8" height="44">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="550" y="211" width="38" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="612" y="213" width="40" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="611" y="223" width="10" height="48">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="548" y="261" width="104" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="452" y="212" width="57" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="416" y="261" width="110" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="499" y="274" width="9" height="153">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="691" y="213" width="9" height="55">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="740" y="211" width="169" height="11">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="945" y="175" width="11" height="77">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="788" y="244" width="155" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="787" y="227" width="9" height="218">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="676" y="435" width="110" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="547" y="273" width="10" height="108">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="551" y="372" width="199" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="695" y="260" width="53" height="8"/>
+  <object x="739" y="265" width="9" height="111">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="675" y="381" width="10" height="288">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="679" y="659" width="279" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="724" y="595" width="233" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="945" y="598" width="11" height="61">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="501" y="420" width="137" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="627" y="422" width="9" height="407">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="597" y="819" width="36" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="596" y="726" width="8" height="97">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="549" y="725" width="52" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="517" y="691" width="112" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="562" y="518" width="26" height="119">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="467" y="514" width="118" height="11">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="466" y="527" width="11" height="45">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="99" y="469" width="10" height="264">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="101" y="467" width="119" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="210" y="470" width="9" height="214">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="196" y="548" width="17" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="197" y="629" width="17" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="148" y="516" width="8" height="265">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="153" y="676" width="18" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="64" y="772" width="236" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="291" y="774" width="9" height="70">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="293" y="836" width="120" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="227" y="691" width="137" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="339" y="705" width="8" height="130">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="346" y="721" width="131" height="11">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="356" y="612" width="7" height="111">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="358" y="612" width="102" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="405" y="625" width="54" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="404" y="676" width="137" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="514" y="706" width="11" height="74">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="389" y="772" width="166" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="547" y="773" width="9" height="102">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="551" y="867" width="134" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="675" y="709" width="8" height="160">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="679" y="709" width="115" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object name="blocker" x="100" y="916" width="360" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="450" y="783" width="11" height="109">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="245" y="883" width="207" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="244" y="820" width="8" height="96">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="102" y="820" width="102" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="196" y="822" width="9" height="95">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="100" y="828" width="8" height="48">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="101" y="867" width="54" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="352" y="820" width="57" height="12">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="163" y="419" width="121" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="258" y="424" width="11" height="230">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="261" y="644" width="53" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="307" y="563" width="8" height="88">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="312" y="565" width="197" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="500" y="567" width="9" height="117">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="500" y="820" width="7" height="102">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="501" y="917" width="295" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="771" y="719" width="25" height="197">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="723" y="755" width="9" height="159">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object name="blocker" x="451" y="307" width="9" height="203">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="404" y="468" width="51" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="404" y="472" width="7" height="38">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="407" y="501" width="49" height="6">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="306" y="420" width="146" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="307" y="429" width="8" height="80">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="311" y="468" width="53" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="355" y="470" width="8" height="38">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="310" y="499" width="48" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="499" y="469" width="128" height="6">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="596" y="309" width="105" height="22">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="643" y="269" width="9" height="43">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="63" y="964" width="1389" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1444" y="25" width="8" height="940">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="835" y="291" width="166" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="994" y="30" width="10" height="301">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1011" y="310" width="262" height="20">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="836" y="340" width="105" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="836" y="351" width="9" height="139">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="930" y="349" width="11" height="160">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="884" y="389" width="9" height="119">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="884" y="498" width="49" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="725" y="484" width="103" height="24">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="724" y="513" width="8" height="44">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="731" y="549" width="272" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="996" y="376" width="6" height="548">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="997" y="915" width="407" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1003" y="83" width="128" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1002" y="132" width="35" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1074" y="89" width="10" height="130"/>
+  <object x="1075" y="212" width="105" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1172" y="54" width="8" height="161">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1125" y="132" width="50" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1123" y="133" width="10" height="40">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="834" y="670" width="10" height="294">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1010" y="419" width="75" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1075" y="431" width="10" height="172"/>
+  <object x="1028" y="371" width="120" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1124" y="385" width="8" height="219">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1173" y="373" width="149" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1172" y="375" width="7" height="86">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1172" y="419" width="57" height="39">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1268" y="421" width="55" height="39">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1315" y="261" width="9" height="153">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1220" y="117" width="152" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1219" y="130" width="8" height="90">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1267" y="128" width="10" height="181">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1042" y="260" width="187" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1219" y="35" width="9" height="42">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1223" y="67" width="102" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1363" y="36" width="9" height="78">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1366" y="67" width="38" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1316" y="164" width="56" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1282" y="213" width="110" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1363" y="226" width="9" height="155">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1366" y="372" width="40" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1363" y="419" width="43" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="883" y="708" width="109" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="883" y="867" width="440" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1172" y="516" width="201" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1363" y="517" width="9" height="120"/>
+  <object x="1266" y="627" width="140" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1379" y="631" width="9" height="102">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1252" y="723" width="153" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1315" y="738" width="9" height="106">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1106" y="834" width="213" height="11">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1106" y="773" width="11" height="91">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1008" y="724" width="156" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1156" y="725" width="8" height="72">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1156" y="786" width="121" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1092" y="644" width="137" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1219" y="565" width="9" height="120">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1204" y="658" width="8" height="128">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1207" y="676" width="134" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1221" y="564" width="103" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1171" y="528" width="9" height="76">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1124" y="596" width="55" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1330" y="467" width="77" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1330" y="471" width="10" height="41">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="898" y="214" width="10" height="32">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="885" y="720" width="22" height="107">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="947" y="755" width="11" height="75">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="885" y="818" width="62" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="884" y="916" width="73" height="7">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="946" y="919" width="11" height="46">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1363" y="772" width="9" height="106">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1365" y="867" width="41" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1009" y="771" width="61" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1059" y="773" width="8" height="96">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1007" y="820" width="15" height="8">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1027" y="546" width="10" height="11">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1059" y="499" width="15" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1059" y="580" width="16" height="9">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1027" y="627" width="9" height="11">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1390" y="639" width="15" height="13">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+  <object x="1268" y="577" width="55" height="10">
+   <properties>
+    <property name="blocker" value=""/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup name="player" width="94" height="63" visible="0">
+  <object x="72" y="38" width="46" height="22">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
+  <object x="72" y="933" width="47" height="24">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
+  <object x="1016" y="884" width="54" height="23">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
+  <object x="1018" y="43" width="50" height="29">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup name="flags" width="94" height="63" visible="0">
+  <object x="577" y="277" width="46" height="19">
+   <properties>
+    <property name="flag" value=""/>
+   </properties>
+  </object>
+  <object x="740" y="855" width="23" height="51">
+   <properties>
+    <property name="flag" value=""/>
+   </properties>
+  </object>
+  <object x="903" y="435" width="20" height="53">
+   <properties>
+    <property name="flag" value=""/>
+   </properties>
+  </object>
+  <object x="1015" y="739" width="52" height="24">
+   <properties>
+    <property name="flag" value=""/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>

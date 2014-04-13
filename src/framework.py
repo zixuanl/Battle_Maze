@@ -22,10 +22,14 @@ class Communicate:
     def __init__( self, maxpeers=5, serverport=0, myid=None, serverhost = None ):
     #--------------------------------------------------------------------------
         self.debug = 0
-        self.peerlock = threading.Lock()  # ensure proper access to peers list (maybe better to use threading.RLock (reentrant))
+        self.peers_list_lock = threading.RLock()  # ensure proper access to peers list (maybe better to use threading.RLock (reentrant))
+        self.playernum_hostip_dict_lock= threading.RLock()
+        self.leader_list_lock=threading.RLock()
+        self.game_dict_lock = threading.RLock()
+        
         if serverport!=0:
             self.game_dict={}
-            self.available_maps_dict = {1:'maps/level2.tmx',2:'maps/level3.tmx',3:'maps/level2.tmx',4:'maps/level3.tmx'}
+            self.available_maps_dict = {1:'maps/level2.tmx',2:'maps/level2.tmx',3:'maps/level2.tmx',4:'maps/level2.tmx'}
             self.gameid_map_dict ={}
             self.game_id=1
             self.playernum_hostip_dict ={}
@@ -35,7 +39,7 @@ class Communicate:
             self.handlers = {}
             self.leader_num = 0
             self.play_start=False
-            self.bootstrap = "128.237.116.164:12345"
+            self.bootstrap = "10.0.0.8:12345"
             self.shutdown = False  # used to stop the main loop
             
             self.maxpeers = int(maxpeers)
@@ -235,13 +239,13 @@ class Communicate:
                 todelete.append( pid )
             if isconnected:
                 peerconn.close()
-        self.peerlock.acquire()
+        self.peers_list_lock.acquire()
         try:
             for pid in todelete: 
                 if pid in self.peers: 
                     del self.peers[pid]
         finally:
-            self.peerlock.release()
+            self.peers_list_lock.release()
 
     #--------------------------------------------------------------------------
     def mainloop( self ):
