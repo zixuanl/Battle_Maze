@@ -17,23 +17,23 @@
    eJzVl7FO3EAURa2VbdaRvRJVUiBvIGyHaCNBFYmN8gEI6rSIP0AiJPkSWvooyifQRGnCP6SKSMKKMr7MXM312+elTYqrGY/H4zP3vXneLbIsK/4D7UVtdtrq9ELG0N8ps2wqYxzfXgvjz809XYdz7LOPjW2Ze9860MMyrLffXe9GJrC18dlZFvoUxvSZfcO2G++xbSpfV03S3TjLRlVoH67rvpST3mwK557016LISea3RXq2FIETWq+SLpplXcUWjOQ86PS1Dm3bPM5Jb63H5Dzvnn/X6aLT+04fpAXjYWSlh2dF0KLo98EBRrAtxoGPUs48S1rFOR3IccR75Ph1aDzFvry9reJk3DWfKe/seKL/vJ6tJZ/+1InzrBjWxybpLjKeRCkn1rox2nHGMA8cKoyBp67SGOIEb8np+afnadJpUQf/ld+LO/Izj3WEnIyp7oPzyKyco8iKa3KeFkHo/x4Hjar+2SLns8aX5WyF86ZM5yo3OhJvmYfK2cZrjoERmlTLwn2Nu9VDrTJ1CWwvi/752JccZK0EJ2NLFra3dfIJzN7Zosg5GZjDvVhOL8enwqec09LnZA7weYwx9nZtz1/mhhU54ePTpi+8o41c9FD787LPx/bXOIhj5LzudFwm0c/P3fibJuWHlfppGZXT27ee6Uk1/A7M+ZT7Oi4T532dzr/GHmssDKeXI+DEPPrIfFP/hnIQ97QmefVJOYf2qpz89tBD5hD5jqRW433MG3JibFvq6n3M0/UBaT3AXGijCUzeXOVk3qN/NUrxJ98s6+f6oh7gzMJ7p2XSXETGHalfymnP24HUT7yLceXZQR+cs/h7gzl7XiznIN6lnKxl/K3H7/88rgsmlXJemxzxOD2Rk+cTfc3B2uEsHVnONjLi2VNhvmb84nqan+SEZz/rEHeuh/duSO31zjRazU+v7q7iPImxyqtlPz1O7ol+aWz0LPN83kaRE/t41a3zY5x89kTOUWQ8XcFp4z5U56xuyuGaqZzw9DLmqfeNaeN+wfHacH4RqZ82rzeaFB/WdvKhva9TvR+qPbh/Gc8UcudJuSzlzCtfNu7ebwRwWh8sJ9rvpS/LaesNxsiJsTzWKPLxN+iQn963cpXwX2HID2qVnypyHojH5OR/yX9V4PwLfSiDrg==
   </data>
  </layer>
- <objectgroup name="player" width="42" height="26" visible="0">
+ <objectgroup name="player" width="42" height="26">
   <object x="92" y="751" width="40" height="40">
    <properties>
     <property name="player" value=""/>
    </properties>
   </object>
-  <object x="1284" y="28" width="37" height="33">
+  <object x="319" y="712" width="37" height="33">
    <properties>
     <property name="player" value=""/>
    </properties>
   </object>
-  <object x="1272" y="748" width="42" height="39">
+  <object x="251" y="650" width="42" height="39">
    <properties>
     <property name="player" value=""/>
    </properties>
   </object>
-  <object x="21" y="21" width="39" height="25">
+  <object x="82" y="657" width="39" height="25">
    <properties>
     <property name="player" value=""/>
    </properties>
