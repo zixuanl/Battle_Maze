@@ -687,11 +687,6 @@ class TileMap(object):
     def update(self, dt, *args):
         for layer in self.layers:
             layer.update(dt, *args)
-    
-    def update2(self, *args):
-        for layer in self.layers:
-            print "here"
-            layer.update2(*args)
 
     def draw(self, screen):
         for layer in self.layers:

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import sys
+import math
 import threading
 from Tkinter import *
 from random import *
@@ -30,6 +31,41 @@ I_WIN = "IWIN"
 I_LOST="LOST"
 INFORM_GAME_END_BOOTSTRAP="OVER"
 
+class Vector():
+    '''
+        Class:
+            creates operations to handle vectors such
+            as direction, position, and speed
+        '''
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __str__(self): # used for printing vectors
+        return "(%s, %s)"%(self.x, self.y)
+
+    def __getitem__(self, key):
+        if key == 0:
+            return self.x
+        elif key == 1:
+            return self.y
+        else:
+            raise IndexError("This "+str(key)+" key is not a vector key!")
+
+    def __sub__(self, o): # subtraction
+        return Vector(self.x - o.x, self.y - o.y)
+
+    def length(self): # get length (used for normalize)
+        return math.sqrt((self.x**2 + self.y**2)) 
+
+    def normalize(self): # divides a vector by its length
+        l = self.length()
+        if l != 0:
+            return (self.x / l, self.y / l)
+        return None
+
+
+
 class player(pygame.sprite.Sprite,Communicate):
     game_over='false'
     def __init__(self, location,player_num,*groups):
@@ -40,73 +76,37 @@ class player(pygame.sprite.Sprite,Communicate):
         self.left_image = pygame.image.load(self.player_tank_map[player_num]['left'])
         self.right_image = pygame.image.load(self.player_tank_map[player_num]['right'])
         self.down_image = pygame.image.load(self.player_tank_map[player_num]['down'])
+        
         self.direction = 2
         self.rect=pygame.rect.Rect(location,(self.image.get_width()-4,self.image.get_height()-4))
         self.guncooldown=0
         self.blockwallcooldown=0
         self.firecount=5
     
-    def update2(self,game,message_type,data):
-            game.tilemap.set_focus(self.rect.x, self.rect.y)
-        
-    def update(self, dt, game):
+    def update(self,dt,game):
         if player.game_over=='true':
             game.show_loser_screen()
             self.kill()
         key=pygame.key.get_pressed()
-        #print 'here'
         last_position = self.rect.copy()
         
-        message_type = game.message_type
-        data = game.message_data
-        #print data
-        if message_type == MOVE:
-            x, y, direction, player_num = data.split(' ')
-            print x, y, direction, player_num
-            if (game.player_num == player_num):
-                self.rect.x = int(x)
-                self.rect.y = int(y)
-                if int(direction) == 1:
-                    self.image = self.right_image
-                    self.direction = 1
-                elif int(direction) == -1:
-                    self.image = self.left_image
-                    self.direction = -1
-                elif int(direction) == 2:
-                    self.image=self.up_image
-                    self.direction = 2
-                elif int(direction) == -2:
-                    self.image = self.down_image
-                    self.direction = -2
-            
-            
-        elif key[pygame.K_RIGHT]:
-            #self.rect.x+=10
-            #self.image=self.right_image
-            #self.direction=1
-            data = str(self.rect.x + 10) + " " + str(self.rect.y) + " " + str(1) + " " + str(game.player_num)
-            game.multicast_to_peers_data(MOVE, data)
+        if key[pygame.K_RIGHT]:
+            self.rect.x+=10
+            self.image=self.right_image
+            self.direction=1
         elif key[pygame.K_LEFT]:
-            #self.rect.x-=10
-            #self.image=self.left_image
-            #self.direction=-1
-            data = str(self.rect.x - 10) + " " + str(self.rect.y) + " " + str(-1) + " " + str(game.player_num)
-            game.multicast_to_peers_data(MOVE, data)
+            self.rect.x-=10
+            self.image=self.left_image
+            self.direction=-1
         elif key[pygame.K_UP]:
-            #self.rect.y-=10
-            #self.image=self.up_image
-            #self.direction=2
-            data = str(self.rect.x) + " " + str(self.rect.y - 10) + " " + str(2) + " " + str(game.player_num)
-            game.multicast_to_peers_data(MOVE, data)
+            self.rect.y-=10
+            self.image=self.up_image
+            self.direction=2
         elif key[pygame.K_DOWN]:
-            #self.rect.y+=10
-            #self.image=self.down_image
-            #self.direction=-2
-            data = str(self.rect.x) + " " + str(self.rect.y + 10) + " " + str(-2) + " " + str(game.player_num)
-            game.multicast_to_peers_data(MOVE, data)
-        
-        
-        '''if key[pygame.K_SPACE] and not self.guncooldown:
+            self.rect.y+=10
+            self.image=self.down_image
+            self.direction=-2
+        elif key[pygame.K_SPACE] and not self.guncooldown:
             if self.direction==2:
                 bullet(self.rect.midtop,2,game.sprites)
             elif self.direction==-2:
@@ -129,7 +129,7 @@ class player(pygame.sprite.Sprite,Communicate):
                 fire(self.rect.midright,1,game.sprites)
             self.blockwallcooldown=1
             self.firecount-=1
-        self.blockwallcooldown=max(0,self.blockwallcooldown-dt)'''
+        self.blockwallcooldown=max(0,self.blockwallcooldown-dt)
         if pygame.sprite.spritecollide(self, game.blockwall,False):
             self.rect=last_position
         new = self.rect
