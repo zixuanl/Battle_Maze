@@ -39,7 +39,7 @@ class Communicate:
             self.handlers = {}
             self.leader_num = 0
             self.play_start=False
-            self.bootstrap = "10.0.0.8:12345"
+            self.bootstrap = "128.237.210.73:12345"
             self.shutdown = False  # used to stop the main loop
             
             self.maxpeers = int(maxpeers)
@@ -199,7 +199,7 @@ class Communicate:
         msgreply = []
         try:
             peerconn = Handler_thread( pid, host, port, debug=self.debug )
-            print msgdata
+            #print msgdata
             peerconn.send_data( msgtype, msgdata )
             self.__debug( 'Sent %s: %s' % (pid, msgtype) )
             

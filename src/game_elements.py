@@ -16,6 +16,7 @@ PLAYER_LIST="PLAY"
 INSERTPEER = "JOIN"
 MOVE = "MOVE"
 FIRE = "FIRE"
+FLAG = "FLAG"
 OBSTACLE = "OBST"
 PEERQUIT = "QUIT"
 REPLY = "REPL"
@@ -49,8 +50,10 @@ class flags(pygame.sprite.Sprite):
      
     def update(self,dt,game):
         if pygame.sprite.spritecollide(self, game.players_sp,False):
-            game.flags_collected = game.flags_collected+1
-            print game.flags_collected
+            #game.flags_collected = game.flags_collected+1
+            print 'flags collected:'
+            data = game.player_num + ' flag'
+            game.multicast_to_peers_data(FLAG, data)
             self.kill()
     
 class fire(pygame.sprite.Sprite):

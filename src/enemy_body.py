@@ -48,6 +48,7 @@ class enemies(pygame.sprite.Sprite,Communicate):
         self.blockwallcooldown=0
         self.firecount=5
         self.alive=True
+        self.player_num = player_num
     def update(self,dt,game):
         
         if self.alive==False:
@@ -56,31 +57,57 @@ class enemies(pygame.sprite.Sprite,Communicate):
         key=pygame.key.get_pressed()
         last_position = self.rect.copy()
         
-        if key[pygame.K_d]:
-            self.rect.x+=10
-            self.image=self.right_image
-            self.direction=1
-        elif key[pygame.K_a]:
-            self.rect.x-=10
-            self.image=self.left_image
-            self.direction=-1
-        elif key[pygame.K_w]:
-            self.rect.y-=10
-            self.image=self.up_image
-            self.direction=2
-        elif key[pygame.K_s]:
-            self.rect.y+=10
-            self.image=self.down_image
-            self.direction=-2
-        elif key[pygame.K_r] and not self.guncooldown:
-            if self.direction==2:
+        #print 'enemy number:', self.player_num
+        
+        queue = game.message_queue[self.player_num]['bullet']
+        while queue.empty() != True:
+            data = queue.get()
+            direction = int(data)
+            if direction == 2:
                 bullet(self.rect.midtop,2,game.sprites)
-            elif self.direction==-2:
+            elif direction == -2:
                 bullet(self.rect.midbottom,-2,game.sprites)
-            elif self.direction==-1:
+            elif direction == -1:
                 bullet(self.rect.midleft,-1,game.sprites)
-            elif self.direction==1:
+            elif direction == 1:
                 bullet(self.rect.midright,1,game.sprites)
+        
+        queue = game.message_queue[self.player_num]['move']
+        while queue.empty() != True:
+            data = queue.get()
+            print 'processing data for enemy...', data
+            x, y, direction = data.split(' ')
+            print x, y, direction
+            self.rect.x = int(x)
+            self.rect.y = int(y)
+            if int(direction) == 1:
+                self.image = self.right_image
+                self.direction = 1
+            elif int(direction) == -1:
+                self.image = self.left_image
+                self.direction = -1
+            elif int(direction) == 2:
+                self.image=self.up_image
+                self.direction = 2
+            elif int(direction) == -2:
+                self.image = self.down_image
+                self.direction = -2
+        
+        if key[pygame.K_d]:
+            data = str(self.player_num) + ' ' + str(self.rect.x + 10) + " " + str(self.rect.y) + " " + str(1);
+            game.multicast_to_peers_data(MOVE, data)
+        elif key[pygame.K_a]:
+            data = str(self.player_num) + ' ' + str(self.rect.x - 10) + " " + str(self.rect.y) + " " + str(-1)
+            game.multicast_to_peers_data(MOVE, data)
+        elif key[pygame.K_w]:
+            data = str(self.player_num) + ' ' + str(self.rect.x) + " " + str(self.rect.y - 10) + " " + str(2)
+            game.multicast_to_peers_data(MOVE, data)
+        elif key[pygame.K_s]:
+            data = str(self.player_num) + ' ' + str(self.rect.x) + " " + str(self.rect.y + 10) + " " + str(-2)
+            game.multicast_to_peers_data(MOVE, data)
+        elif key[pygame.K_r] and not self.guncooldown:
+            data = str(self.player_num) + ' ' + str(self.direction)
+            game.multicast_to_peers_data(FIRE, data)
             self.guncooldown=1
         self.guncooldown = max(0, self.guncooldown - dt)
         

@@ -90,32 +90,77 @@ class player(pygame.sprite.Sprite,Communicate):
         key=pygame.key.get_pressed()
         last_position = self.rect.copy()
         
-        if key[pygame.K_RIGHT]:
-            self.rect.x+=10
-            self.image=self.right_image
-            self.direction=1
-        elif key[pygame.K_LEFT]:
-            self.rect.x-=10
-            self.image=self.left_image
-            self.direction=-1
-        elif key[pygame.K_UP]:
-            self.rect.y-=10
-            self.image=self.up_image
-            self.direction=2
-        elif key[pygame.K_DOWN]:
-            self.rect.y+=10
-            self.image=self.down_image
-            self.direction=-2
-        elif key[pygame.K_SPACE] and not self.guncooldown:
-            if self.direction==2:
+        queue = game.message_queue[game.player_num]['bullet']
+        while queue.empty() != True:
+            data = queue.get()
+            direction = int(data)
+            if direction == 2:
                 bullet(self.rect.midtop,2,game.sprites)
-            elif self.direction==-2:
+            elif direction == -2:
                 bullet(self.rect.midbottom,-2,game.sprites)
-            elif self.direction==-1:
+            elif direction == -1:
                 bullet(self.rect.midleft,-1,game.sprites)
-            elif self.direction==1:
+            elif direction == 1:
                 bullet(self.rect.midright,1,game.sprites)
+        
+        queue = game.message_queue[game.player_num]['move']
+        while queue.empty() != True:
+            data = queue.get()
+            print 'processing data...', data
+            x, y, direction = data.split(' ')
+            print x, y, direction
+            self.rect.x = int(x)
+            self.rect.y = int(y)
+            if int(direction) == 1:
+                self.image = self.right_image
+                self.direction = 1
+            elif int(direction) == -1:
+                self.image = self.left_image
+                self.direction = -1
+            elif int(direction) == 2:
+                self.image=self.up_image
+                self.direction = 2
+            elif int(direction) == -2:
+                self.image = self.down_image
+                self.direction = -2
+        
+        if key[pygame.K_RIGHT]:
+            #self.rect.x+=10
+            #self.image=self.right_image
+            #self.direction=1
+            data = str(game.player_num) + ' ' + str(self.rect.x + 10) + " " + str(self.rect.y) + " " + str(1);
+            game.multicast_to_peers_data(MOVE, data)
+        elif key[pygame.K_LEFT]:
+            #self.rect.x-=10
+            #self.image=self.left_image
+            #self.direction=-1
+            data = str(game.player_num) + ' ' + str(self.rect.x - 10) + " " + str(self.rect.y) + " " + str(-1)
+            game.multicast_to_peers_data(MOVE, data)
+        elif key[pygame.K_UP]:
+            #self.rect.y-=10
+            #self.image=self.up_image
+            #self.direction=2
+            data = str(game.player_num) + ' ' + str(self.rect.x) + " " + str(self.rect.y - 10) + " " + str(2)
+            game.multicast_to_peers_data(MOVE, data)
+        elif key[pygame.K_DOWN]:
+            #self.rect.y+=10
+            #self.image=self.down_image
+            #self.direction=-2
+            data = str(game.player_num) + ' ' + str(self.rect.x) + " " + str(self.rect.y + 10) + " " + str(-2)
+            game.multicast_to_peers_data(MOVE, data)
+        elif key[pygame.K_SPACE] and not self.guncooldown:
+            #if self.direction==2:
+            #    bullet(self.rect.midtop,2,game.sprites)
+            #elif self.direction==-2:
+            #    bullet(self.rect.midbottom,-2,game.sprites)
+            #elif self.direction==-1:
+            #    bullet(self.rect.midleft,-1,game.sprites)
+            #elif self.direction==1:
+            #    bullet(self.rect.midright,1,game.sprites)
+            data = str(game.player_num) + ' ' + str(self.direction)
+            game.multicast_to_peers_data(FIRE, data)
             self.guncooldown=1
+            
         self.guncooldown = max(0, self.guncooldown - dt)
         
         if key[pygame.K_LSHIFT] and self.firecount>0 and not self.blockwallcooldown:
@@ -130,8 +175,10 @@ class player(pygame.sprite.Sprite,Communicate):
             self.blockwallcooldown=1
             self.firecount-=1
         self.blockwallcooldown=max(0,self.blockwallcooldown-dt)
+        
         if pygame.sprite.spritecollide(self, game.blockwall,False):
             self.rect=last_position
+            
         new = self.rect
         for cell in game.tilemap.layers['collision'].collide(new,"blocker"):
             if last_position.right <= cell.left and new.right > cell.left:

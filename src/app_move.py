@@ -16,6 +16,7 @@ from game_elements import *
 import enemy_body
 from enemy_body import *
 import txtlib
+import Queue
 
 PEERNAME = "NAME"   # request a peer's canonical id
 LISTPEERS = "LIST"
@@ -23,6 +24,7 @@ PLAYER_LIST="PLAY"
 INSERTPEER = "JOIN"
 MOVE = "MOVE"
 FIRE = "FIRE"
+FLAG = "FLAG"
 OBSTACLE = "OBST"
 PEERQUIT = "QUIT"
 REPLY = "REPL"
@@ -56,8 +58,11 @@ class Game(object,Communicate):
         """
         handlers = {
                     LISTPEERS : self.__handle_listpeers,INSERTPEER : self.__handle_insertpeer,
-                    PEERNAME: self.__handle_peername,MOVE: self.__handle_move,
-                    FIRE: self.__handle_fire,OBSTACLE: self.__handle_obstacle,
+                    PEERNAME: self.__handle_peername,
+                    MOVE: self.__handle_move,
+                    FIRE: self.__handle_fire,
+                    FLAG: self.__handle_flag,
+                    OBSTACLE: self.__handle_obstacle,
                     PEERQUIT: self.__handle_quit,GAME_START: self.__handle_gamestart,
                     PEER_INFO_DETAILS: self.__peer_info_details,PLAY_START: self.__play_start,I_WIN:self.__handle_game_end_peers,
                     INFORM_GAME_END_BOOTSTRAP: self.__handle_game_end_bootstrap,LEAVING:self.__handle_player_leaving_gracious
@@ -71,8 +76,10 @@ class Game(object,Communicate):
         self.player_num=-1 # The player_num returned by the bootstrap node
         self.my_peer_name=firstpeer # Your own host:port 
         self.enemy={} # list of all other players objects that are created later
+        
         self.flag_list={}
-        self.flags_collected=0
+        self.flags_collected = {}
+        self.message_queue = {}
         
         host,port = firstpeer.split(':')
         self.t = threading.Thread( target = self.mainloop, args = [] )
@@ -81,6 +88,14 @@ class Game(object,Communicate):
         # A bootstrap node should only help in bootstrapping. So all this is not needed for it
         if firstpeer!=self.bootstrap:
             self.contactbootstrap(GAME_START,firstpeer) #contact bootstrap to get required information
+            
+            print self.player_num
+            self.message_queue[self.player_num] = {}
+            self.message_queue[self.player_num]['move'] = Queue.Queue(0)
+            self.message_queue[self.player_num]['bullet'] = Queue.Queue(0)
+            self.flags_collected[self.player_num] = 0
+            self.playernum_hostip_dict[self.player_num]=self.my_peer_name
+            
             pygame.init()
             self.screen = pygame.display.set_mode((1034, 624))
             # The first node to join the game is given the option to start the game. All others wait for him to start
@@ -97,6 +112,7 @@ class Game(object,Communicate):
                 self.sort_and_assign_leader()
                 print "LEADER_LIST , LEADER_NUM"
                 print self.leader_list , self.leader_num
+            
                 
      
     #--------------------------------------------------------------------------
@@ -188,18 +204,41 @@ class Game(object,Communicate):
         self.playernum_hostip_dict[player_number]=peername
         self.playernum_hostip_dict_lock.release()
         
+        print 'get player:', player_number
+        self.message_queue[player_number] = {}
+        self.message_queue[player_number]['move'] = Queue.Queue(0)
+        self.message_queue[player_number]['bullet'] = Queue.Queue(0)
+        self.flags_collected[player_number] = 0
+            
+        
         self.leader_list.append(player_number)
         peerconn.send_data(PEER_INFO_DETAILS,'%s %s %s' % (self.game_id,self.my_peer_name,self.player_num))
     
     #--------------------------------------------------------------------------    
     def __handle_move(self,peerconn,data,peername):
     #--------------------------------------------------------------------------    
-        print ""
+        player_num = data.split(' ')[0]
+        data = data.split(' ', 1)[1]
+        print 'received move message from', player_num
+        self.message_queue[player_num]['move'].put(data)
+        
     
     #--------------------------------------------------------------------------    
     def __handle_fire(self,peerconn,data,peername):
     #--------------------------------------------------------------------------        
-        print ""
+        player_num = data.split(' ')[0]
+        data = data.split(' ', 1)[1]
+        print 'received fire message from', player_num
+        self.message_queue[player_num]['bullet'].put(data)
+    
+    #--------------------------------------------------------------------------    
+    def __handle_flag(self,peerconn,data,peername):
+    #--------------------------------------------------------------------------        
+        player_num = data.split(' ')[0]
+        data = data.split(' ', 1)[1]
+        print 'received flag message from', player_num
+        self.flags_collected[player_num] += 1
+        #self.message_queue[player_num]['bullet'].put(data)
         
     #--------------------------------------------------------------------------    
     def __handle_obstacle(self,peerconn,data,peername):
@@ -375,6 +414,10 @@ class Game(object,Communicate):
                 gameid,peername,player_number= resp[0][1].split()
                 self.playernum_hostip_dict[player_number]=peername
                 self.leader_list.append(player_number)
+                self.message_queue[player_number] = {}
+                self.message_queue[player_number]['move'] = Queue.Queue(0)
+                self.message_queue[player_number]['bullet'] = Queue.Queue(0)
+                self.flags_collected[player_number] = 0
                 print "LOCAL PLAYER DICTIONARY"
                 print self.playernum_hostip_dict
             self.peers_list_lock.release()
@@ -428,6 +471,14 @@ class Game(object,Communicate):
                 self.contactbootstrap(LEAVING,self.my_peer_name)
                 #contact bootstrap and inform that you are leaving here
             self.playernum_hostip_dict_lock.release()
+    
+    def multicast_to_peers_data(self, message_type, data):
+        for key in self.playernum_hostip_dict:
+            value = self.playernum_hostip_dict[key].split(":")
+            host,port = value[0],value[1]
+            print "Contacting peer", (host, port)
+            self.contact_peer_with_msg(host, port, message_type, data) 
+    
 
     """--------------------------------------------END NODE CONTACT FUNCTIONS---------------------------------"""
 
@@ -599,10 +650,11 @@ class Game(object,Communicate):
         self.player1 = player((start_cell.px, start_cell.py),self.player_num,self.players_sp)
         self.flag_list[self.player_num]=flags((flag_cell.px,flag_cell.py),self.flag_layer)
         for entry in self.playernum_hostip_dict:
-            start_cell = self.tilemap.layers['player'].find('player')[int(entry)-1]
-            flag_cell = self.tilemap.layers['flags'].find('flag')[int(entry)-1]
-            self.enemy[entry]=enemies((start_cell.px,start_cell.py),entry,self.enemies)
-            self.flag_list[entry]=flags((flag_cell.px,flag_cell.py),self.flag_layer)
+            if (entry != self.player_num):
+                start_cell = self.tilemap.layers['player'].find('player')[int(entry)-1]
+                flag_cell = self.tilemap.layers['flags'].find('flag')[int(entry)-1]
+                self.enemy[entry]=enemies((start_cell.px,start_cell.py),entry,self.enemies)
+                self.flag_list[entry]=flags((flag_cell.px,flag_cell.py),self.flag_layer)
         
         self.tilemap.layers.append(self.sprites)
         self.tilemap.layers.append(self.blockwall)
@@ -622,9 +674,10 @@ class Game(object,Communicate):
                     self.__onDestroy()
                     sys.exit()
                     return
+                
             # if all the flags have been collected , convey that you win the game
-            if (self.flags_collected==len(self.playernum_hostip_dict)+1):
-                self.multicast_to_peers(I_WIN,self.my_peer_name)
+            if (self.flags_collected[self.player_num] == len(self.playernum_hostip_dict)):
+                self.multicast_to_peers(I_WIN, self.my_peer_name)
             
             self.tilemap.update(dt / 1000.,self)
             self.tilemap.draw(self.game_surface)
