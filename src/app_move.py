@@ -477,10 +477,11 @@ class Game(object,Communicate):
             i=0
             self.playernum_hostip_dict_lock.acquire()
             for key in self.playernum_hostip_dict:
-                host,port=self.playernum_hostip_dict[key].split(":")
-                resp = self.contact_peer_with_msg(host, port,messagetype,data)
-                if(resp[0][0]==REPLY):
-                    i=i+1
+                if key!=self.player_num:
+                    host,port=self.playernum_hostip_dict[key].split(":")
+                    resp = self.contact_peer_with_msg(host, port,messagetype,data)
+                    if(resp[0][0]==REPLY):
+                        i=i+1
             self.playernum_hostip_dict_lock.release()
             host,port = self.bootstrap.split(":")
             data="STARTED"

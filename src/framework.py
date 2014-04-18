@@ -39,7 +39,7 @@ class Communicate:
             self.handlers = {}
             self.leader_num = 0
             self.play_start=False
-            self.bootstrap = "10.0.0.8:12345"
+            self.bootstrap = "128.237.123.200:12345"
             self.shutdown = False  # used to stop the main loop
             
             self.maxpeers = int(maxpeers)
