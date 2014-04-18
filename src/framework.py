@@ -6,7 +6,7 @@ import time
 import traceback
 
 
-def btdebug( msg ):
+def print_debug( msg ):
     """ Prints a messsage to the screen with the name of the current thread """
     print "[%s] %s" % ( str(threading.currentThread().getName()), msg )
 
@@ -39,7 +39,7 @@ class Communicate:
             self.handlers = {}
             self.leader_num = 0
             self.play_start=False
-            self.bootstrap = "128.237.210.73:12345"
+            self.bootstrap = "10.0.0.8:12345"
             self.shutdown = False  # used to stop the main loop
             
             self.maxpeers = int(maxpeers)
@@ -78,7 +78,7 @@ class Communicate:
     def __debug( self, msg ):
     #--------------------------------------------------------------------------
         if self.debug:
-            btdebug( msg )
+            print_debug( msg )
 
     #--------------------------------------------------------------------------
     def __connection_handler( self, clientsock ):
@@ -199,7 +199,6 @@ class Communicate:
         msgreply = []
         try:
             peerconn = Handler_thread( pid, host, port, debug=self.debug )
-            #print msgdata
             peerconn.send_data( msgtype, msgdata )
             self.__debug( 'Sent %s: %s' % (pid, msgtype) )
             
@@ -303,7 +302,7 @@ class Handler_thread:
     def __debug( self, msg ):
     #--------------------------------------------------------------------------
         if self.debug:
-            btdebug( msg )
+            print_debug( msg )
 
 
     #--------------------------------------------------------------------------

@@ -92,7 +92,7 @@ class enemies(pygame.sprite.Sprite,Communicate):
             elif int(direction) == -2:
                 self.image = self.down_image
                 self.direction = -2
-        
+        """       
         if key[pygame.K_d]:
             data = str(self.player_num) + ' ' + str(self.rect.x + 10) + " " + str(self.rect.y) + " " + str(1);
             game.multicast_to_peers_data(MOVE, data)
@@ -135,3 +135,4 @@ class enemies(pygame.sprite.Sprite,Communicate):
                 new.bottom = cell.top
             if last_position.top >= cell.bottom and new.top < cell.bottom:
                 new.top = cell.bottom
+        """
