@@ -1,3 +1,8 @@
+'''
+Created on Apr 19, 2014
+
+@author: arvindbalaji
+'''
 #!/usr/bin/python
 import socket
 import struct
@@ -27,45 +32,28 @@ class Communicate:
         self.leader_list_lock=threading.RLock()
         self.game_dict_lock = threading.RLock()
         
-        if serverport!=0:
+        self.game_dict={}
+        self.available_maps_dict = {1:'maps/level2.tmx',2:'maps/level2.tmx',3:'maps/level2.tmx',4:'maps/level2.tmx'}
+        self.gameid_map_dict ={}
+        self.game_id=1
             
-            self.playernum_hostip_dict ={}
-            self.leader_list=[]
+        self.peers = {}  # peerid ==> (host, port) mapping
+        self.handlers = {}
+        self.shutdown = False  # used to stop the main loop
             
-            self.peers = {}  # peerid ==> (host, port) mapping
-            self.handlers = {}
-            self.leader_num = 0
-            self.play_start=False
-            self.bootstrap = ""
-            self.shutdown = False  # used to stop the main loop
+        self.maxpeers = int(maxpeers)
+        self.serverport = int(serverport)
             
-            self.maxpeers = int(maxpeers)
-            self.serverport = int(serverport)
-            
-            if serverhost: 
-                self.serverhost = serverhost
-            else: 
-                self.__get_self_ip()
+        if serverhost: 
+            self.serverhost = serverhost
+        else: 
+            self.__get_self_ip()
     
-            if myid: 
-                self.myid = myid
-            else: 
-                self.myid = '%s:%d' % (self.serverhost, self.serverport)
-        else:
-            self.player_tank_map ={
-                                   '1':{'up':'tanks/1_up.png','down':'tanks/1_down.png','left':'tanks/1_left.png','right':'tanks/1_right.png'},
-                                   '2':{'up':'tanks/2_up.png','down':'tanks/2_down.png','left':'tanks/2_left.png','right':'tanks/2_right.png'},
-                                   '3':{'up':'tanks/3_up.png','down':'tanks/3_down.png','left':'tanks/3_left.png','right':'tanks/3_right.png'},
-                                   '4':{'up':'tanks/4_up.png','down':'tanks/4_down.png','left':'tanks/4_left.png','right':'tanks/4_right.png'}
-                                   }
-        
-                
-    def get_bootstrap(self):
-        
-        bootstrap_ip=socket.gethostbyname("battlemaze.zapto.org")
-        self.bootstrap=bootstrap_ip+":12345"
-        print self.bootstrap
-
+        if myid: 
+            self.myid = myid
+        else: 
+            self.myid = '%s:%d' % (self.serverhost, self.serverport)
+             
     #--------------------------------------------------------------------------
     def __get_self_ip( self ):
     #--------------------------------------------------------------------------
@@ -99,6 +87,7 @@ class Communicate:
             if msgtype not in self.handlers:
                 self.__debug( 'Not handled: %s: %s' % (msgtype, msgdata) )
             else:
+                print msgtype
                 self.__debug( 'Handling peer msg: %s: %s' % (msgtype, msgdata) )
                 self.handlers[ msgtype ]( peerconn, msgdata,clientsock.getpeername() )
         except KeyboardInterrupt:
@@ -109,22 +98,6 @@ class Communicate:
     
         self.__debug( 'Disconnecting ' + str(clientsock.getpeername()) )
         peerconn.close()
-
-    #--------------------------------------------------------------------------
-    def __runstabilizer( self, stabilizer, delay ):
-    #--------------------------------------------------------------------------
-        while not self.shutdown:
-            stabilizer()
-            time.sleep( delay )
-
-    #--------------------------------------------------------------------------
-    def startstabilizer( self, stabilizer, delay ):
-    #--------------------------------------------------------------------------
-        """ Registers and starts a stabilizer function with this peer. 
-        The function will be activated every <delay> seconds. 
-        """
-        t = threading.Thread( target = self.__runstabilizer,args = [ stabilizer, delay ] )
-        t.start()
         
     #--------------------------------------------------------------------------
     def add_event_handler( self, msgtype, handler ):
@@ -144,19 +117,6 @@ class Communicate:
             return True
         else:
             return False
-
-    #--------------------------------------------------------------------------
-    def getpeer( self, peerid ):
-    #--------------------------------------------------------------------------
-        """ Returns the (host, port) tuple for the given peer name """
-        assert peerid in self.peers    # maybe make this just a return NULL?
-        return self.peers[ peerid ]
-
-    #--------------------------------------------------------------------------
-    def get_peers_list( self ):
-    #--------------------------------------------------------------------------
-        """ Return a list of all known peer id's. """
-        return self.peers.keys()
 
     #--------------------------------------------------------------------------
     def setup_server_socket( self, port, backlog=4 ):
@@ -197,36 +157,6 @@ class Communicate:
             if self.debug:
                 traceback.print_exc()
         return msgreply
-
-    #--------------------------------------------------------------------------
-    def checklivepeers( self ):
-    #--------------------------------------------------------------------------
-        """ 
-        Attempts to ping all currently known peers in order to ensure that
-        they are still active. Removes any from the peer list that do
-        not reply. This function can be used as a simple stabilizer.
-    
-        """
-        todelete = []
-        for pid in self.peers:
-            isconnected = False
-            try:
-                self.__debug( 'Check live %s' % pid )
-                host,port = self.peers[pid]
-                peerconn = Handler_thread( pid, host, port, debug=self.debug )
-                peerconn.send_data( 'PING', '' )
-                isconnected = True
-            except:
-                todelete.append( pid )
-            if isconnected:
-                peerconn.close()
-        self.peers_list_lock.acquire()
-        try:
-            for pid in todelete: 
-                if pid in self.peers: 
-                    del self.peers[pid]
-        finally:
-            self.peers_list_lock.release()
 
     #--------------------------------------------------------------------------
     def mainloop( self ):
