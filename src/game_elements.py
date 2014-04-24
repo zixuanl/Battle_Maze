@@ -43,16 +43,22 @@ class wall(pygame.sprite.Sprite):
             return
 
 class flags(pygame.sprite.Sprite):
-    def __init__(self,location,*groups):
+    def __init__(self,location,flag_num,*groups):
         super(flags,self).__init__(*groups)
         self.image = pygame.image.load("game_items/flag.png")
         self.rect = pygame.rect.Rect(location,self.image.get_size())
+        self.flag_num = flag_num
      
     def update(self,dt,game):
+        queue = game.message_queue[self.flag_num]['flag']
+        while queue.empty() != True:
+            data = queue.get()
+            self.kill()
+            
         if pygame.sprite.spritecollide(self, game.players_sp,False):
             #game.flags_collected = game.flags_collected+1
-            print 'flags collected:'
-            data = game.player_num + ' flag'
+            print 'flags collected!'
+            data = game.player_num + ' ' + str(self.flag_num)
             game.multicast_to_peers_data(FLAG, data)
             self.kill()
     

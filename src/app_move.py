@@ -25,6 +25,7 @@ INSERTPEER = "JOIN"
 MOVE = "MOVE"
 FIRE = "FIRE"
 FLAG = "FLAG"
+UPDATE = "UPDT"
 OBSTACLE = "OBST"
 PEERQUIT = "QUIT"
 REPLY = "REPL"
@@ -61,6 +62,7 @@ class Game(object,Communicate):
                     MOVE: self.__handle_move,
                     FIRE: self.__handle_fire,
                     FLAG: self.__handle_flag,
+                    UPDATE: self.__handle_update,
                     PEER_INFO_DETAILS: self.__peer_info_details,
                     PLAY_START: self.__play_start,
                     I_WIN:self.__handle_game_end_peers,
@@ -79,6 +81,7 @@ class Game(object,Communicate):
         self.flag_list={}
         self.flags_collected = {}
         self.message_queue = {}
+        self.seq = 0
         
         pygame.init()
         
@@ -89,7 +92,7 @@ class Game(object,Communicate):
         self.get_bootstrap()
 ###############################################################   
         #PLEASE uncomment and assign your IP to the following for testing to make it work on your machine
-        #self.bootstrap='127.237.123.200:12345'
+        self.bootstrap='10.0.0.7:12345'
         
         
         self.contactbootstrap(GAME_START,firstpeer) #contact bootstrap to get required information
@@ -98,6 +101,7 @@ class Game(object,Communicate):
         self.message_queue[self.player_num] = {}
         self.message_queue[self.player_num]['move'] = Queue.Queue(0)
         self.message_queue[self.player_num]['bullet'] = Queue.Queue(0)
+        self.message_queue[self.player_num]['flag'] = Queue.Queue(0)
         self.flags_collected[self.player_num] = 0
         self.playernum_hostip_dict[self.player_num]=self.my_peer_name
             
@@ -195,6 +199,7 @@ class Game(object,Communicate):
         self.message_queue[player_number] = {}
         self.message_queue[player_number]['move'] = Queue.Queue(0)
         self.message_queue[player_number]['bullet'] = Queue.Queue(0)
+        self.message_queue[player_number]['flag'] = Queue.Queue(0)
         self.flags_collected[player_number] = 0
             
         
@@ -208,6 +213,7 @@ class Game(object,Communicate):
         data = data.split(' ', 1)[1]
         print 'received move message from', player_num
         self.message_queue[player_num]['move'].put(data)
+        #self.add_message_to_queue(data,self.message_queue[player_num]['move'])
         
     
     #--------------------------------------------------------------------------    
@@ -217,15 +223,45 @@ class Game(object,Communicate):
         data = data.split(' ', 1)[1]
         print 'received fire message from', player_num
         self.message_queue[player_num]['bullet'].put(data)
+        #self.add_message_to_queue(data,self.message_queue[player_num]['bullet'])
     
     #--------------------------------------------------------------------------    
     def __handle_flag(self,peerconn,data,peername):
     #--------------------------------------------------------------------------        
         player_num = data.split(' ')[0]
         data = data.split(' ', 1)[1]
-        print 'received flag message from', player_num
+        print 'received flag message from', player_num, 'for flag', data
         self.flags_collected[player_num] += 1
-        #self.message_queue[player_num]['bullet'].put(data)
+        self.message_queue[data]['flag'].put(data)
+        #self.add_message_to_queue(data,self.message_queue[player_num]['flag'])
+    
+    #--------------------------------------------------------------------------    
+    def __handle_update(self,peerconn,data,peername):
+    #--------------------------------------------------------------------------        
+        # call the update functions
+        #print 'updating...'
+        dt = data
+        '''self.tilemap.update(dt / 1000.,self)
+        self.tilemap.draw(self.game_surface)
+        #used to update the player list tab on the left with the right message contents
+        self.show_on_screen_messages()
+            
+        self.screen2.blit(self.game_surface,(210,0))
+        self.screen2.blit(self.player_surface.area, (5, 5))
+        self.screen2.blit(self.message_surface.area,(5,310))
+            
+        pygame.display.flip()
+        '''
+    
+    def add_message_to_queue(self,message,queue):
+        message_seq = int(message.split(' ')[0])
+        for i in range(0, len(queue) + 1):
+            if (i == len(queue)):
+                queue.append(message)
+            seq = int(queue[i].split(' ')[0])
+            if (seq > message_seq):
+                queue.insert(i, message)
+            
         
  
     #-------------------------------------------------------------------------- 
@@ -364,6 +400,7 @@ class Game(object,Communicate):
                 self.message_queue[player_number] = {}
                 self.message_queue[player_number]['move'] = Queue.Queue(0)
                 self.message_queue[player_number]['bullet'] = Queue.Queue(0)
+                self.message_queue[player_number]['flag'] = Queue.Queue(0)
                 self.flags_collected[player_number] = 0
                 print "LOCAL PLAYER DICTIONARY"
                 print self.playernum_hostip_dict
@@ -427,7 +464,7 @@ class Game(object,Communicate):
         for key in self.playernum_hostip_dict:
             value = self.playernum_hostip_dict[key].split(":")
             host,port = value[0],value[1]
-            print "Contacting peer", (host, port)
+            #print "Contacting peer", (host, port)
             self.contact_peer_with_msg(host, port, message_type, data) 
 
     """--------------------------------------------END NODE CONTACT FUNCTIONS---------------------------------"""
@@ -604,6 +641,8 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------
     def main(self, screen):
     #--------------------------------------------------------------------------    
+    
+        self.screen2 = screen
         """
         The main function that actually starts the game
         """
@@ -626,13 +665,13 @@ class Game(object,Communicate):
         start_cell = self.tilemap.layers['player'].find('player')[int(self.player_num)-1]
         flag_cell = self.tilemap.layers['flags'].find('flag')[int(self.player_num)-1]
         self.player1 = player((start_cell.px, start_cell.py),self.player_num,self.players_sp)
-        self.flag_list[self.player_num]=flags((flag_cell.px,flag_cell.py),self.flag_layer)
+        self.flag_list[self.player_num]=flags((flag_cell.px,flag_cell.py),self.player_num,self.flag_layer)
         for entry in self.playernum_hostip_dict:
             if (entry != self.player_num):
                 start_cell = self.tilemap.layers['player'].find('player')[int(entry)-1]
                 flag_cell = self.tilemap.layers['flags'].find('flag')[int(entry)-1]
                 self.enemy[entry]=enemies((start_cell.px,start_cell.py),entry,self.enemies)
-                self.flag_list[entry]=flags((flag_cell.px,flag_cell.py),self.flag_layer)
+                self.flag_list[entry]=flags((flag_cell.px,flag_cell.py),entry,self.flag_layer)
         
         self.tilemap.layers.append(self.sprites)
         self.tilemap.layers.append(self.blockwall)
@@ -641,8 +680,11 @@ class Game(object,Communicate):
         self.tilemap.layers.append(self.flag_layer)
         
         clock = pygame.time.Clock()
+        t = 0
         while 1:
-            dt=clock.tick(30)
+            dt=clock.tick(20)
+            #t = (t + 1) % 30
+            #print 'dt:', dt
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return
@@ -665,7 +707,11 @@ class Game(object,Communicate):
             screen.blit(self.player_surface.area, (5, 5))
             screen.blit(self.message_surface.area,(5,310))
             
-            pygame.display.flip()        
+            pygame.display.flip()
+            if (self.player_num == self.leader_list[0]):
+                #if (t == 0):
+                    #print 'I am leader: sending update message...'
+                    self.multicast_to_peers_data(UPDATE, str(dt))
 
 if __name__=='__main__':
     if len(sys.argv) < 4:

@@ -93,34 +93,28 @@ class player(pygame.sprite.Sprite,Communicate):
         last_position = self.rect.copy()
         new = self.rect.copy()
         
-        if key[pygame.K_RIGHT]:
-            
-            new.x=new.x + 10
-            self.direction=1
+        if key[pygame.K_RIGHT]:    
+            new.x = new.x + 10
+            self.direction = 1
             self.action_flag=-1
         
         elif key[pygame.K_LEFT]:
-            
-            new.x=new.x - 10
+            new.x = new.x - 10
             self.direction=-1
             self.action_flag=-1
             
         elif key[pygame.K_UP]:
-            
-            new.y=new.y - 10
+            new.y = new.y - 10
             self.direction=2
             self.action_flag=-1
            
         elif key[pygame.K_DOWN]:
-            
-            new.y=new.y + 10
+            new.y = new.y + 10
             self.direction=-2
             self.action_flag=-1
-           
         elif key[pygame.K_SPACE] and not self.guncooldown:
-            
-            self.action_flag=1
-            self.guncooldown=1
+            self.action_flag = 1
+            self.guncooldown = 1
         self.guncooldown = max(0, self.guncooldown - dt)
         
         if key[pygame.K_LSHIFT] and self.firecount>0 and not self.blockwallcooldown:
@@ -137,7 +131,7 @@ class player(pygame.sprite.Sprite,Communicate):
         self.blockwallcooldown=max(0,self.blockwallcooldown-dt)
         
         if pygame.sprite.spritecollide(self, game.blockwall,False):
-            self.rect=last_position
+            self.rect = last_position
         
         for cell in game.tilemap.layers['collision'].collide(new,"blocker"):
             if last_position.right <= cell.left and new.right > cell.left:
