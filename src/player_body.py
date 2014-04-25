@@ -51,6 +51,7 @@ class player(pygame.sprite.Sprite,Communicate):
         self.action_flag=-2 # MOVE = -1 , Fire = 1 , Bullet = 0
     
     def update(self,dt,game):
+        #print 'updating...'
         if player.game_over=='true':
             game.show_loser_screen()
             self.kill()

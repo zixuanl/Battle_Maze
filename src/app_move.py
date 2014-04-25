@@ -40,6 +40,8 @@ INFORM_GAME_END_BOOTSTRAP="OVER"
 LEADER = "LEAD"
 LEAVING = "LEAV"
 
+UPDATE_FREQUENCY = 0.03
+
 class Game(object,Communicate):
     
     """
@@ -92,7 +94,7 @@ class Game(object,Communicate):
         self.get_bootstrap()
 ###############################################################   
         #PLEASE uncomment and assign your IP to the following for testing to make it work on your machine
-        self.bootstrap='10.0.0.7:12345'
+        self.bootstrap='128.237.209.215:12345'
         
         
         self.contactbootstrap(GAME_START,firstpeer) #contact bootstrap to get required information
@@ -238,20 +240,20 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------    
     def __handle_update(self,peerconn,data,peername):
     #--------------------------------------------------------------------------        
-        # call the update functions
-        #print 'updating...'
-        dt = data
-        '''self.tilemap.update(dt / 1000.,self)
+        print 'updating...'
+        self.update_all()
+    
+    def update_all(self):
+        #dt = self.clock.tick(20)
+        #print dt
+        self.tilemap.update(90 / 1000.,self)
         self.tilemap.draw(self.game_surface)
         #used to update the player list tab on the left with the right message contents
         self.show_on_screen_messages()
-            
         self.screen2.blit(self.game_surface,(210,0))
         self.screen2.blit(self.player_surface.area, (5, 5))
         self.screen2.blit(self.message_surface.area,(5,310))
-            
         pygame.display.flip()
-        '''
     
     def add_message_to_queue(self,message,queue):
         message_seq = int(message.split(' ')[0])
@@ -262,8 +264,6 @@ class Game(object,Communicate):
             if (seq > message_seq):
                 queue.insert(i, message)
             
-        
- 
     #-------------------------------------------------------------------------- 
     def __handle_player_leaving_gracious(self,peerconn,data,peername):
     #--------------------------------------------------------------------------     
@@ -679,12 +679,13 @@ class Game(object,Communicate):
         self.tilemap.layers.append(self.players_sp)
         self.tilemap.layers.append(self.flag_layer)
         
-        clock = pygame.time.Clock()
-        t = 0
+        self.clock = pygame.time.Clock()
+        
+        self.update_all()
+        
         while 1:
-            dt=clock.tick(20)
-            #t = (t + 1) % 30
-            #print 'dt:', dt
+            time.sleep(UPDATE_FREQUENCY)
+            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return
@@ -698,20 +699,8 @@ class Game(object,Communicate):
             if (self.flags_collected[self.player_num] == len(self.playernum_hostip_dict)):
                 self.multicast_to_peers(I_WIN, self.my_peer_name)
             
-            self.tilemap.update(dt / 1000.,self)
-            self.tilemap.draw(self.game_surface)
-            #used to update the player list tab on the left with the right message contents
-            self.show_on_screen_messages()
-            
-            screen.blit(self.game_surface,(210,0))
-            screen.blit(self.player_surface.area, (5, 5))
-            screen.blit(self.message_surface.area,(5,310))
-            
-            pygame.display.flip()
             if (self.player_num == self.leader_list[0]):
-                #if (t == 0):
-                    #print 'I am leader: sending update message...'
-                    self.multicast_to_peers_data(UPDATE, str(dt))
+                self.multicast_to_peers_data(UPDATE, '')
 
 if __name__=='__main__':
     if len(sys.argv) < 4:
