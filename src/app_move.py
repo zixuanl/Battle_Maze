@@ -38,6 +38,8 @@ I_LOST="LOST"
 INFORM_GAME_END_BOOTSTRAP="OVER"
 LEADER = "LEAD"
 LEAVING = "LEAV"
+DROP_NODE = "DROP"
+DEAD_NODE = "DEAD"
 
 class Game(object,Communicate):
     
@@ -79,17 +81,22 @@ class Game(object,Communicate):
         self.flag_list={}
         self.flags_collected = {}
         self.message_queue = {}
-        
+
+
+        self.dead_node = {}
+
+
         pygame.init()
         
         host,port = firstpeer.split(':')
         self.t = threading.Thread( target = self.mainloop, args = [] )
+        self.t.setDaemon(True)
         self.t.start()
 ###############################################################
         self.get_bootstrap()
 ###############################################################   
-        #PLEASE uncomment and assign your IP to the following for testing to make it work on your machine
-        #self.bootstrap='127.237.123.200:12345'
+        #PLEASE uncomment and assign your IP to the f/m`ollowing for testing to make it work on your machine
+        self.bootstrap='128.237.216.16:12345'
         
         
         self.contactbootstrap(GAME_START,firstpeer) #contact bootstrap to get required information
@@ -100,7 +107,10 @@ class Game(object,Communicate):
         self.message_queue[self.player_num]['bullet'] = Queue.Queue(0)
         self.flags_collected[self.player_num] = 0
         self.playernum_hostip_dict[self.player_num]=self.my_peer_name
-            
+       
+        self.connect_pool={}    
+
+
         pygame.init()
         self.screen = pygame.display.set_mode((1034, 624))
         # The first node to join the game is given the option to start the game. All others wait for him to start
@@ -114,6 +124,7 @@ class Game(object,Communicate):
             #self.convey_play_start(firstpeer)
             print "LEADER_LIST , LEADER_NUM"
             print self.leader_list , self.leader_num
+            print self.player_num
                 
      
     #--------------------------------------------------------------------------
@@ -206,7 +217,7 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------    
         player_num = data.split(' ')[0]
         data = data.split(' ', 1)[1]
-        print 'received move message from', player_num
+        #print 'received move message from', player_num
         self.message_queue[player_num]['move'].put(data)
         
     
@@ -215,7 +226,7 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------        
         player_num = data.split(' ')[0]
         data = data.split(' ', 1)[1]
-        print 'received fire message from', player_num
+        #print 'received fire message from', player_num
         self.message_queue[player_num]['bullet'].put(data)
     
     #--------------------------------------------------------------------------    
@@ -223,7 +234,7 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------        
         player_num = data.split(' ')[0]
         data = data.split(' ', 1)[1]
-        print 'received flag message from', player_num
+        #print 'received flag message from', player_num
         self.flags_collected[player_num] += 1
         #self.message_queue[player_num]['bullet'].put(data)
         
@@ -296,7 +307,7 @@ class Game(object,Communicate):
     """--------------------------------------------NODE CONTACT FUNCTIONS---------------------------------"""
      
     #--------------------------------------------------------------------------
-    def contactbootstrap(self,messagetype,peername):
+    def contactbootstrap(self,messagetype,peername, data = None):
     #--------------------------------------------------------------------------
         """
          This function is called by all nodes when they want to start a game and it gets back all details for the game
@@ -341,6 +352,12 @@ class Game(object,Communicate):
         elif messagetype==INFORM_GAME_END_BOOTSTRAP:
             data = self.game_id+" "+self.my_peer_name+" "+self.player_num
             self.contact_peer_with_msg(host,port,INFORM_GAME_END_BOOTSTRAP,data)  
+        elif messagetype==DROP_NODE:
+            self.contact_peer_with_msg(host,port,messagetype,data)
+        elif messagetype==DEAD_NODE:
+            self.contact_peer_with_msg(host,port,messagetype,data)
+
+
             
         
     #--------------------------------------------------------------------------
@@ -400,7 +417,7 @@ class Game(object,Communicate):
                         i=i+1
             self.playernum_hostip_dict_lock.release()
             host,port = self.bootstrap.split(":")
-            data="STARTED" + str(self.game_id)
+            data="STARTED" + ":" + str(self.game_id)
             resp = self.contact_peer_with_msg(host, port,GAME_START,data)
         
         elif messagetype==LEADER:
@@ -427,8 +444,8 @@ class Game(object,Communicate):
         for key in self.playernum_hostip_dict:
             value = self.playernum_hostip_dict[key].split(":")
             host,port = value[0],value[1]
-            print "Contacting peer", (host, port)
-            self.contact_peer_with_msg(host, port, message_type, data) 
+            #print "Contacting peer", (host, port)
+            self.contact_peer_with_msg_static(host, port, message_type, data) 
 
     """--------------------------------------------END NODE CONTACT FUNCTIONS---------------------------------"""
 
@@ -640,6 +657,32 @@ class Game(object,Communicate):
         self.tilemap.layers.append(self.players_sp)
         self.tilemap.layers.append(self.flag_layer)
         
+
+        # create the connect_pool
+
+        try:
+            for key in self.playernum_hostip_dict:
+                value = self.playernum_hostip_dict[key].split(":")
+                host,port = value[0],value[1]
+                self.connect_pool[self.playernum_hostip_dict[key]] = Handler_thread( None, host, port, debug=self.debug )
+                print "create connection to ",
+                print host,
+                print ":",
+                print port
+        except KeyboardInterrupt:
+            raise
+        except:
+            if self.debug:
+                traceback.print_exc()
+        
+        
+        if  self.player_num == self.leader_num:
+            self.check = threading.Thread( target = self.check_mainloop, args = [] )
+            self.check.setDaemon(True)
+            self.check.start()
+            
+
+
         clock = pygame.time.Clock()
         while 1:
             dt=clock.tick(30)

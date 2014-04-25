@@ -33,6 +33,7 @@ class Communicate:
         self.game_dict_lock = threading.RLock()
         
         self.game_dict={}
+        self.game_current_dead={}
         self.available_maps_dict = {1:'maps/level2.tmx',2:'maps/level2.tmx',3:'maps/level2.tmx',4:'maps/level2.tmx'}
         self.gameid_map_dict ={}
         self.game_id=1
@@ -79,7 +80,6 @@ class Communicate:
         """
         host, port = clientsock.getpeername()
         peerconn = Handler_thread( None, host, port, clientsock, debug=False )
-    
         try:
             msgtype, msgdata = peerconn.receive_data()
             if msgtype: 
@@ -87,7 +87,6 @@ class Communicate:
             if msgtype not in self.handlers:
                 self.__debug( 'Not handled: %s: %s' % (msgtype, msgdata) )
             else:
-                print msgtype
                 self.__debug( 'Handling peer msg: %s: %s' % (msgtype, msgdata) )
                 self.handlers[ msgtype ]( peerconn, msgdata,clientsock.getpeername() )
         except KeyboardInterrupt:
@@ -132,7 +131,7 @@ class Communicate:
         return s
     
     #--------------------------------------------------------------------------
-    def contact_peer_with_msg( self, host, port, msgtype, msgdata,pid=None, waitreply=True ):
+    def contact_peer_with_msg( self, host, port, msgtype, msgdata, game_id, pid=None, waitreply=True ):
     #--------------------------------------------------------------------------
         """
         Connects and sends a message to the specified host:port. The host's
@@ -154,9 +153,45 @@ class Communicate:
         except KeyboardInterrupt:
             raise
         except:
+            #print "Error Occur.........................."
+            #print "The error host and port is " + host + ":" + port
+            #print "Add it to current dead list"
+            lost = host + ":" + port
+            if lost not in self.game_current_dead[game_id]:
+                self.game_current_dead[game_id][lost] = 0
             if self.debug:
                 traceback.print_exc()
         return msgreply
+
+
+    #--------------------------------------------------------------------------
+    def check_mainloop( self, game_id ):
+    #--------------------------------------------------------------------------
+        to_move_list = []
+        print game_id
+        while 1:
+            time.sleep(1)
+            if self.game_current_dead[game_id]:
+                print "The dead nodes of game " + str(game_id) + " are"
+                for key in self.game_current_dead[game_id]:
+                    print key, self.game_current_dead[game_id][key]
+                    self.game_current_dead[game_id][key] = self.game_current_dead[game_id][key] + 1
+                    if self.game_current_dead[game_id][key] == 6:
+                        to_move_list.append(key)
+            for item in to_move_list:
+                del self.game_current_dead[game_id][item]
+                print "Delete the dead node because of timeout"
+                self.game_dict[game_id].remove(item)
+                print "Current game dictionary of game " + str(game_id) + " are",
+                print self.game_dict[game_id]
+            to_move_list = []
+
+            for key in self.game_dict[game_id]:
+                value = key.split(":")
+                host,port = value[0],value[1]
+                #print "Sending Heart Beat to ..... ", (host, port)
+                self.contact_peer_with_msg(host, port, "HBMG", "Null", game_id) 
+        
 
     #--------------------------------------------------------------------------
     def mainloop( self ):
@@ -167,7 +202,7 @@ class Communicate:
         while not self.shutdown:
             try:
                 self.__debug( 'Listening for connections...' )
-                s.settimeout(10)
+                #s.settimeout(10)
                 clientsock, clientaddr = s.accept()
                 
                 t = threading.Thread( target = self.__connection_handler,args = [ clientsock ] )

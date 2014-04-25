@@ -89,23 +89,31 @@ class Communicate:
         """
         Dispatches messages from the socket connection
         """
+        not_remove_list=["MOVE", "FIRE", "FLAG"]
         host, port = clientsock.getpeername()
         peerconn = Handler_thread( None, host, port, clientsock, debug=False )
-    
-        try:
-            msgtype, msgdata = peerconn.receive_data()
-            if msgtype: 
-                msgtype = msgtype.upper()
-            if msgtype not in self.handlers:
-                self.__debug( 'Not handled: %s: %s' % (msgtype, msgdata) )
-            else:
-                self.__debug( 'Handling peer msg: %s: %s' % (msgtype, msgdata) )
-                self.handlers[ msgtype ]( peerconn, msgdata,clientsock.getpeername() )
-        except KeyboardInterrupt:
-            raise
-        except:
-            if self.debug:
-                traceback.print_exc()
+
+        while 1:
+            try:
+                msgtype, msgdata = peerconn.receive_data()
+                if msgtype: 
+                    msgtype = msgtype.upper()
+                else:
+                    continue
+                if msgtype not in self.handlers:
+                    self.__debug( 'Not handled: %s: %s' % (msgtype, msgdata) )
+                else:
+                    self.__debug( 'Handling peer msg: %s: %s' % (msgtype, msgdata) )
+                    self.handlers[ msgtype ]( peerconn, msgdata,clientsock.getpeername() ) 
+                if msgtype not in not_remove_list:
+                    #print msgtype
+                    break
+                #print "I am moving now ......."
+            except KeyboardInterrupt:
+                raise
+            except:
+                if self.debug:
+                    traceback.print_exc()
     
         self.__debug( 'Disconnecting ' + str(clientsock.getpeername()) )
         peerconn.close()
@@ -194,9 +202,52 @@ class Communicate:
         except KeyboardInterrupt:
             raise
         except:
+          #  print "crash....................."
+            lost = host + ":" + port
+            if lost not in self.dead_node:
+                self.dead_node[lost] = 0
+            if self.debug:
+                traceback.print_exc()
+
+
             if self.debug:
                 traceback.print_exc()
         return msgreply
+
+    #--------------------------------------------------------------------------
+    def contact_peer_with_msg_static( self, host, port, msgtype, msgdata,pid=None, waitreply=True ):
+    #--------------------------------------------------------------------------
+        """
+        Connects and sends a message to the specified host:port. The host's
+        reply, if expected, will be returned as a list of tuples.
+        """
+        msgreply = []
+        try:
+            key = host+":"+port
+            #if self.connect_pool[key]:
+             #   print "I am alive..................."
+            peerconn = self.connect_pool[key]
+            peerconn.send_data( msgtype, msgdata )
+            self.__debug( 'Sent %s: %s' % (pid, msgtype) )
+            #print "wrong here????"
+            '''
+            if waitreply:
+                onereply = peerconn.receive_data()
+                while (onereply != (None,None)):
+                    msgreply.append( onereply )
+                    self.__debug( 'Got reply %s: %s' % ( pid, str(msgreply)))
+                    onereply = peerconn.receive_data()
+            '''
+          #  peerconn.close()
+        except KeyboardInterrupt:
+            raise
+        except:
+            if self.debug:
+                traceback.print_exc()
+        return msgreply
+
+
+
 
     #--------------------------------------------------------------------------
     def checklivepeers( self ):
@@ -237,7 +288,7 @@ class Communicate:
         while not self.shutdown:
             try:
                 self.__debug( 'Listening for connections...' )
-                s.settimeout(10)
+                #s.settimeout(10)
                 clientsock, clientaddr = s.accept()
                 
                 t = threading.Thread( target = self.__connection_handler,args = [ clientsock ] )
@@ -251,6 +302,60 @@ class Communicate:
                     continue
         self.__debug( 'Main loop exiting' )
         s.close()
+
+    #--------------------------------------------------------------------------
+    def check_mainloop( self ):
+    #--------------------------------------------------------------------------
+        to_remove_list = []
+        #peerconn = {}
+        
+        '''
+        for key in self.playernum_hostip_dict:
+            value = self.playernum_hostip_dict[key].split(":")
+            host,port = value[0],value[1]
+            peerconn[self.playernum_hostip_dict[key]]=Handler_thread( None, host, port, debug=self.debug )
+        '''
+
+        while 1:
+            time.sleep(1)
+            if self.dead_node:
+                print "The dead nodes of game are"
+                for key in self.dead_node:
+                    print key, self.dead_node[key]
+                    self.dead_node[key] = self.dead_node[key] + 1
+                    data = key + "    time left:" + str(self.dead_node[key])
+                    self.contactbootstrap("DEAD",self.my_peer_name,data)
+                    if self.dead_node[key] == 6:
+                        to_remove_list.append(key)
+
+            to_remove_key = []
+            for item in to_remove_list:
+                del self.dead_node[item]
+                print "Delete the dead node because of timeout"
+                for key in self.playernum_hostip_dict:
+                    if self.playernum_hostip_dict[key] == item:
+                        to_remove_key.append(key)
+
+
+            for key in to_remove_key:
+
+                self.contactbootstrap("DROP",self.my_peer_name,self.playernum_hostip_dict[key])
+                del self.playernum_hostip_dict[key]
+                print "current game dictionary is"
+                print self.playernum_hostip_dict
+                                
+
+            to_remove_key = []    
+            to_remove_list = []
+
+            for key in self.playernum_hostip_dict:
+                value = self.playernum_hostip_dict[key].split(":")
+                host,port = value[0],value[1]
+                #print "send heart beat to"
+                #print self.playernum_hostip_dict[key]
+                self.contact_peer_with_msg(host, port, "HBMS", "Null") 
+
+
 # end Communicate class
 
 class Handler_thread:

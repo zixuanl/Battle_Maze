@@ -16,6 +16,8 @@ DETAILS="DETL" # bootstrap replies with this as first message followed by PLAYER
 PLAY_START="PSTA"
 INFORM_GAME_END_BOOTSTRAP="OVER"
 LEAVING = "LEAV"
+DROP_NODE = "DROP"
+DEAD_NODE = "DEAD"
 
 class Game(object,Communicate):
     
@@ -31,13 +33,34 @@ class Game(object,Communicate):
         
         Communicate.__init__(self, maxpeers, serverport)
         handlers = {
-                    GAME_START:self.__handle_gamestart,INFORM_GAME_END_BOOTSTRAP: self.__handle_game_end_bootstrap,LEAVING:self.__handle_player_leaving_gracious
+                GAME_START:self.__handle_gamestart,INFORM_GAME_END_BOOTSTRAP: self.__handle_game_end_bootstrap,LEAVING:self.__handle_player_leaving_gracious,DROP_NODE: self.__handle_drop_node, DEAD_NODE: self.__handle_dead_node
                     }
         self.my_peer_name=firstpeer
         for mt in handlers:
             self.add_event_handler(mt, handlers[mt])
         self.t = threading.Thread( target = self.mainloop, args = [] )
         self.t.start()           
+    
+    #--------------------------------------------------------------------------
+    def __handle_dead_node(self,peerconn,data,peername):
+    #--------------------------------------------------------------------------  
+
+        print "Got DeadNode message"
+        print data
+
+
+
+
+    #--------------------------------------------------------------------------
+    def __handle_drop_node(self,peerconn,data,peername):
+    #--------------------------------------------------------------------------  
+
+        print "Got Drop message"
+        print data
+
+
+    
+
     #--------------------------------------------------------------------------
     def __handle_gamestart(self, peerconn,data,peername):
     #--------------------------------------------------------------------------
@@ -64,7 +87,7 @@ class Game(object,Communicate):
                         self.game_id=self.game_id+1
                 print "Game dictionary is :"
                 print self.game_dict[self.game_id]
-            
+                
             #create new game for the given game-id and add user to it
             else:
                 map_id=random.randint(1, 4)
@@ -79,10 +102,19 @@ class Game(object,Communicate):
             self.game_dict_lock.release()
         #this condition is hit when a game is started with < 4 players
         else:
+                print data
                 message,game_id = data.split(":")
                 if int(game_id)==int(self.game_id) and len(self.game_dict[self.game_id])!=4:
                     self.game_id=self.game_id+1
                 peerconn.send_data(REPLY,'OK')
+                #self.game_current_dead[self.game_id-1]={}
+                #self.check = threading.Thread( target = self.check_mainloop, args = [self.game_id-1] )
+                #self.check.start()
+
+
+
+
+
                 
         #-------------------------------------------------------------------------- 
     def __handle_player_leaving_gracious(self,peerconn,data,peername):

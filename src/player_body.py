@@ -72,9 +72,9 @@ class player(pygame.sprite.Sprite,Communicate):
         queue = game.message_queue[game.player_num]['move']
         while queue.empty() != True:
             data = queue.get()
-            print 'processing data...', data
+            #print 'processing data...', data
             x, y, direction = data.split(' ')
-            print x, y, direction
+            #print x, y, direction
             self.rect.x = int(x)
             self.rect.y = int(y)
             if int(direction) == 1:
