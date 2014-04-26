@@ -202,7 +202,6 @@ class Communicate:
         except KeyboardInterrupt:
             raise
         except:
-          #  print "crash....................."
             lost = host + ":" + port
             if lost not in self.dead_node:
                 self.dead_node[lost] = 0
@@ -224,8 +223,8 @@ class Communicate:
         msgreply = []
         try:
             key = host+":"+port
-            #if self.connect_pool[key]:
-             #   print "I am alive..................."
+           # if self.connect_pool[key]:
+            #    print "I am alive...................",msgtype, msgdata
             peerconn = self.connect_pool[key]
             peerconn.send_data( msgtype, msgdata )
             self.__debug( 'Sent %s: %s' % (pid, msgtype) )
@@ -323,11 +322,9 @@ class Communicate:
                 for key in self.dead_node:
                     print key, self.dead_node[key]
                     self.dead_node[key] = self.dead_node[key] + 1
-                    data = key + "    time left:" + str(self.dead_node[key])
-                    self.contactbootstrap("DEAD",self.my_peer_name,data)
-                    if self.dead_node[key] == 6:
+                    if self.dead_node[key] == 3:
                         to_remove_list.append(key)
-
+            
             to_remove_key = []
             for item in to_remove_list:
                 del self.dead_node[item]
@@ -335,12 +332,14 @@ class Communicate:
                 for key in self.playernum_hostip_dict:
                     if self.playernum_hostip_dict[key] == item:
                         to_remove_key.append(key)
-
-
+                
+                
             for key in to_remove_key:
 
                 self.contactbootstrap("DROP",self.my_peer_name,self.playernum_hostip_dict[key])
+                self.multicast_to_peers_data("DROP", self.playernum_hostip_dict[key])
                 del self.playernum_hostip_dict[key]
+
                 print "current game dictionary is"
                 print self.playernum_hostip_dict
                                 

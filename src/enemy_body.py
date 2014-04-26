@@ -38,12 +38,15 @@ class enemies(pygame.sprite.Sprite,Communicate):
         Communicate.__init__(self)
         super(enemies,self).__init__(*groups)
         self.image=pygame.image.load(self.player_tank_map[player_num]['up'])
+        self.rect=pygame.rect.Rect(location,(self.image.get_width()-4,self.image.get_height()-4))
         self.up_image = pygame.image.load(self.player_tank_map[player_num]['up'])
         self.left_image = pygame.image.load(self.player_tank_map[player_num]['left'])
         self.right_image = pygame.image.load(self.player_tank_map[player_num]['right'])
         self.down_image = pygame.image.load(self.player_tank_map[player_num]['down'])
         self.direction = 2
-        self.rect=pygame.rect.Rect(location,(self.image.get_width()-4,self.image.get_height()-4))
+        
+       
+        
         self.guncooldown=0
         self.blockwallcooldown=0
         self.firecount=5
@@ -51,11 +54,13 @@ class enemies(pygame.sprite.Sprite,Communicate):
         self.player_num = player_num
     def update(self,dt,game):
         
+        if game.stall_update==True:
+            return
         if self.alive==False:
             self.kill()
         
         key=pygame.key.get_pressed()
-        last_position = self.rect.copy()
+     #   last_position = self.rect.copy()
         
         #print 'enemy number:', self.player_num
         
@@ -75,9 +80,9 @@ class enemies(pygame.sprite.Sprite,Communicate):
         queue = game.message_queue[self.player_num]['move']
         while queue.empty() != True:
             data = queue.get()
-            #print 'processing data for enemy...', data
+            print 'processing data for enemy...', data
             x, y, direction = data.split(' ')
-            #print x, y, direction
+            print x, y, direction
             self.rect.x = int(x)
             self.rect.y = int(y)
             if int(direction) == 1:

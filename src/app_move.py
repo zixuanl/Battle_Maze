@@ -17,6 +17,7 @@ import enemy_body
 from enemy_body import *
 import txtlib
 import Queue
+import time
 
 PEERNAME = "NAME"   # request a peer's canonical id
 LISTPEERS = "LIST"
@@ -25,6 +26,7 @@ INSERTPEER = "JOIN"
 MOVE = "MOVE"
 FIRE = "FIRE"
 FLAG = "FLAG"
+UPDATE = "UPDT"
 OBSTACLE = "OBST"
 PEERQUIT = "QUIT"
 REPLY = "REPL"
@@ -40,6 +42,11 @@ LEADER = "LEAD"
 LEAVING = "LEAV"
 DROP_NODE = "DROP"
 DEAD_NODE = "DEAD"
+
+UPDATE_FREQUENCY = 0.03
+# Test if a player can leave and Rejoin 
+REJOIN ="REJN"
+PEER_INFO_DETAILS_AFTERSTART="PIDA"
 
 class Game(object,Communicate):
     
@@ -63,10 +70,12 @@ class Game(object,Communicate):
                     MOVE: self.__handle_move,
                     FIRE: self.__handle_fire,
                     FLAG: self.__handle_flag,
+                    UPDATE: self.__handle_update,
                     PEER_INFO_DETAILS: self.__peer_info_details,
                     PLAY_START: self.__play_start,
                     I_WIN:self.__handle_game_end_peers,
-                    LEAVING:self.__handle_player_leaving_gracious
+                    LEAVING:self.__handle_player_leaving_gracious,
+                    DROP_NODE:self.__handle_node_drop
                     }
         for mt in handlers:
             self.add_event_handler(mt, handlers[mt])
@@ -81,22 +90,21 @@ class Game(object,Communicate):
         self.flag_list={}
         self.flags_collected = {}
         self.message_queue = {}
-
-
+        self.seq = 0
+        self.stall_update=False
+        self.last_joined = ""
         self.dead_node = {}
-
-
         pygame.init()
         
         host,port = firstpeer.split(':')
         self.t = threading.Thread( target = self.mainloop, args = [] )
-        self.t.setDaemon(True)
+	self.t.setDaemon(True)
         self.t.start()
 ###############################################################
         self.get_bootstrap()
 ###############################################################   
-        #PLEASE uncomment and assign your IP to the f/m`ollowing for testing to make it work on your machine
-        self.bootstrap='128.237.216.16:12345'
+        #PLEASE uncomment and assign your IP to the following for testing to make it work on your machine
+        self.bootstrap='128.237.224.170:12345'
         
         
         self.contactbootstrap(GAME_START,firstpeer) #contact bootstrap to get required information
@@ -105,12 +113,11 @@ class Game(object,Communicate):
         self.message_queue[self.player_num] = {}
         self.message_queue[self.player_num]['move'] = Queue.Queue(0)
         self.message_queue[self.player_num]['bullet'] = Queue.Queue(0)
+	self.message_queue[self.player_num]['flag'] = Queue.Queue(0)
         self.flags_collected[self.player_num] = 0
         self.playernum_hostip_dict[self.player_num]=self.my_peer_name
-       
-        self.connect_pool={}    
-
-
+            
+	self.connect_pool={} 
         pygame.init()
         self.screen = pygame.display.set_mode((1034, 624))
         # The first node to join the game is given the option to start the game. All others wait for him to start
@@ -124,7 +131,6 @@ class Game(object,Communicate):
             #self.convey_play_start(firstpeer)
             print "LEADER_LIST , LEADER_NUM"
             print self.leader_list , self.leader_num
-            print self.player_num
                 
      
     #--------------------------------------------------------------------------
@@ -206,18 +212,57 @@ class Game(object,Communicate):
         self.message_queue[player_number] = {}
         self.message_queue[player_number]['move'] = Queue.Queue(0)
         self.message_queue[player_number]['bullet'] = Queue.Queue(0)
+        self.message_queue[player_number]['flag'] = Queue.Queue(0)
         self.flags_collected[player_number] = 0
             
-        
         self.leader_list.append(player_number)
-        peerconn.send_data(PEER_INFO_DETAILS,'%s %s %s' % (self.game_id,self.my_peer_name,self.player_num))
+        
+        if self.play_start==True:
+            print "PLAY_START_TRUE"
+            print self.enemy
+            if not player_number in self.enemy.keys():
+                print "HI"
+                self.last_joined=player_number
+                self.stall_update=True
+            peerconn.send_data(PEER_INFO_DETAILS_AFTERSTART,'%s %s %s' % (self.game_id,self.my_peer_name,self.player_num))
+        else:
+            print "PLAY_START_FALSE"
+            peerconn.send_data(PEER_INFO_DETAILS,'%s %s %s' % (self.game_id,self.my_peer_name,self.player_num))
     
+    #--------------------------------------------------------------------------  
+
+    def __handle_node_drop(self,peerconn,data,peername):
     #--------------------------------------------------------------------------    
+        
+        print data
+        remove = None
+        for key in self.playernum_hostip_dict:
+            if self.playernum_hostip_dict[key] == data:
+                remove = key
+        if remove:
+            #Add code for removing the player from your screen
+            #add code for removing player from leader list
+            #add code for removing the static socket
+        
+            print remove
+            print self.leader_list
+            print self.enemy
+            self.playernum_hostip_dict.pop(remove)
+            self.leader_list.remove(remove)
+            self.sort_and_assign_leader()
+            if self.enemy[remove]:
+                print self.enemy[remove].alive
+                self.enemy[remove].alive=False
+                self.enemy.pop(remove)
+
+        print "Current dictionary is :"
+        print self.playernum_hostip_dict
+  
     def __handle_move(self,peerconn,data,peername):
     #--------------------------------------------------------------------------    
         player_num = data.split(' ')[0]
         data = data.split(' ', 1)[1]
-        #print 'received move message from', player_num
+        print 'received move message from', player_num
         self.message_queue[player_num]['move'].put(data)
         
     
@@ -226,7 +271,7 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------        
         player_num = data.split(' ')[0]
         data = data.split(' ', 1)[1]
-        #print 'received fire message from', player_num
+        print 'received fire message from', player_num
         self.message_queue[player_num]['bullet'].put(data)
     
     #--------------------------------------------------------------------------    
@@ -234,11 +279,38 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------        
         player_num = data.split(' ')[0]
         data = data.split(' ', 1)[1]
-        #print 'received flag message from', player_num
+        print 'received flag message from', player_num, 'for flag', data
         self.flags_collected[player_num] += 1
-        #self.message_queue[player_num]['bullet'].put(data)
-        
- 
+        self.message_queue[data]['flag'].put(data)
+        #self.add_message_to_queue(data,self.message_queue[player_num]['flag'])
+    
+    #--------------------------------------------------------------------------    
+    def __handle_update(self,peerconn,data,peername):
+    #--------------------------------------------------------------------------        
+        #print "update"
+        self.update_all()
+    
+    def update_all(self):
+        #dt = self.clock.tick(20)
+        #print dt
+        self.tilemap.update(90 / 1000.,self)
+        self.tilemap.draw(self.game_surface)
+        #used to update the player list tab on the left with the right message contents
+        self.show_on_screen_messages()
+        self.screen.blit(self.game_surface,(210,0))
+        self.screen.blit(self.player_surface.area, (5, 5))
+        self.screen.blit(self.message_surface.area,(5,310))
+        pygame.display.flip()
+    
+    def add_message_to_queue(self,message,queue):
+        message_seq = int(message.split(' ')[0])
+        for i in range(0, len(queue) + 1):
+            if (i == len(queue)):
+                queue.append(message)
+            seq = int(queue[i].split(' ')[0])
+            if (seq > message_seq):
+                queue.insert(i, message)
+            
     #-------------------------------------------------------------------------- 
     def __handle_player_leaving_gracious(self,peerconn,data,peername):
     #--------------------------------------------------------------------------     
@@ -282,6 +354,7 @@ class Game(object,Communicate):
                     if self.enemy[player_num]:
                         print self.enemy[player_num].alive
                         self.enemy[player_num].alive=False
+                        self.enemy.pop(player_num)
     #--------------------------------------------------------------------------  
     def __handle_game_end_peers(self,peerconn,data,peername):
     #-------------------------------------------------------------------------- 
@@ -317,6 +390,7 @@ class Game(object,Communicate):
             try:
                 resp = self.contact_peer_with_msg(host, port,messagetype,peername)
                 self.__debug(str(resp))
+                print "RESPONSE",resp
                 if (resp[0][0] != DETAILS):
                     return
                 #Get back game id, no:of peers,player_num and players list
@@ -340,15 +414,19 @@ class Game(object,Communicate):
                             self.__debug('invalid insert %s: %s' % (str(12345), data))
                     finally:
                         self.peers_list_lock.release()
-            except:
+            except Exception,e: 
+                print e
+                traceback.print_exc()
                 self.print_error_screen()
                 pygame.quit()
                 self.__onDestroy()
                 sys.exit() 
+        
         elif messagetype==LEAVING:
             print "In contact bootstrap"
             data=self.game_id+" "+self.my_peer_name+" "+self.player_num+" "+str(self.play_start) 
             resp = self.contact_peer_with_msg(host, port,messagetype,data)
+        
         elif messagetype==INFORM_GAME_END_BOOTSTRAP:
             data = self.game_id+" "+self.my_peer_name+" "+self.player_num
             self.contact_peer_with_msg(host,port,INFORM_GAME_END_BOOTSTRAP,data)  
@@ -369,21 +447,30 @@ class Game(object,Communicate):
         """
         if messagetype==PEER_INFO_DETAILS:
             data = self.game_id+" "+peername+" "+self.player_num
+            message_type=""
             self.peers_list_lock.acquire()
             for key in self.peers:
                 host,port=self.peers[key][0],self.peers[key][1]
                 resp = self.contact_peer_with_msg(host, port,messagetype,data)
-                if (resp[0][0] !=PEER_INFO_DETAILS):
+                print "Response received "+resp[0][0]
+                if (resp[0][0] !=PEER_INFO_DETAILS and resp[0][0]!=PEER_INFO_DETAILS_AFTERSTART):
                     return
+                
+                received_messagetype=resp[0][0]
                 gameid,peername,player_number= resp[0][1].split()
                 self.playernum_hostip_dict[player_number]=peername
                 self.leader_list.append(player_number)
                 self.message_queue[player_number] = {}
                 self.message_queue[player_number]['move'] = Queue.Queue(0)
                 self.message_queue[player_number]['bullet'] = Queue.Queue(0)
+                self.message_queue[player_number]['flag'] = Queue.Queue(0)
                 self.flags_collected[player_number] = 0
                 print "LOCAL PLAYER DICTIONARY"
                 print self.playernum_hostip_dict
+                print received_messagetype
+            if received_messagetype==PEER_INFO_DETAILS_AFTERSTART:
+                print "AFTER START CONSIDITION"
+                self.play_start=True
             self.peers_list_lock.release()
             
         elif messagetype==I_WIN:
@@ -417,7 +504,7 @@ class Game(object,Communicate):
                         i=i+1
             self.playernum_hostip_dict_lock.release()
             host,port = self.bootstrap.split(":")
-            data="STARTED" + ":" + str(self.game_id)
+            data="STARTED " + str(self.game_id)
             resp = self.contact_peer_with_msg(host, port,GAME_START,data)
         
         elif messagetype==LEADER:
@@ -441,11 +528,22 @@ class Game(object,Communicate):
     #-------------------------------------------------------------------------- 
     def multicast_to_peers_data(self, message_type, data):
     #-------------------------------------------------------------------------- 
-        for key in self.playernum_hostip_dict:
-            value = self.playernum_hostip_dict[key].split(":")
-            host,port = value[0],value[1]
-            #print "Contacting peer", (host, port)
-            self.contact_peer_with_msg_static(host, port, message_type, data) 
+        if message_type==UPDATE:
+            try:
+                for key in self.playernum_hostip_dict:
+                    value = self.playernum_hostip_dict[key].split(":")
+                    host,port = value[0],value[1]
+                    # print "Contacting peer", (host, port)
+                    self.contact_peer_with_msg(host, port, message_type, data)  
+            except:
+                traceback.print_exc()
+                print ""
+        else:
+            for key in self.playernum_hostip_dict:
+                value = self.playernum_hostip_dict[key].split(":")
+                host,port = value[0],value[1]
+                #print "Contacting peer", (host, port)
+                self.contact_peer_with_msg_static(host, port, message_type, data) 
 
     """--------------------------------------------END NODE CONTACT FUNCTIONS---------------------------------"""
 
@@ -457,6 +555,17 @@ class Game(object,Communicate):
                 self.leader_list.sort()
                 self.leader_num=self.leader_list[0]
         self.leader_list_lock.release()
+        
+    
+    def allow_player_joined(self):
+        player_number = self.last_joined
+        
+        start_cell = self.tilemap.layers['player'].find('player')[int(player_number)-1]
+        flag_cell = self.tilemap.layers['flags'].find('flag')[int(player_number)-1]
+        
+        self.enemy[player_number]=enemies((start_cell.px,start_cell.py),player_number,self.enemies)
+        self.tilemap.layers.append(self.enemies)
+        self.stall_update=False
           
     """--------------------------------------------ALL SCREEN DISPLAY FUNCTIONS---------------------------------"""
     
@@ -643,13 +752,13 @@ class Game(object,Communicate):
         start_cell = self.tilemap.layers['player'].find('player')[int(self.player_num)-1]
         flag_cell = self.tilemap.layers['flags'].find('flag')[int(self.player_num)-1]
         self.player1 = player((start_cell.px, start_cell.py),self.player_num,self.players_sp)
-        self.flag_list[self.player_num]=flags((flag_cell.px,flag_cell.py),self.flag_layer)
+        self.flag_list[self.player_num]=flags((flag_cell.px,flag_cell.py),self.player_num,self.flag_layer)
         for entry in self.playernum_hostip_dict:
             if (entry != self.player_num):
                 start_cell = self.tilemap.layers['player'].find('player')[int(entry)-1]
                 flag_cell = self.tilemap.layers['flags'].find('flag')[int(entry)-1]
                 self.enemy[entry]=enemies((start_cell.px,start_cell.py),entry,self.enemies)
-                self.flag_list[entry]=flags((flag_cell.px,flag_cell.py),self.flag_layer)
+                self.flag_list[entry]=flags((flag_cell.px,flag_cell.py),entry,self.flag_layer)
         
         self.tilemap.layers.append(self.sprites)
         self.tilemap.layers.append(self.blockwall)
@@ -675,17 +784,15 @@ class Game(object,Communicate):
             if self.debug:
                 traceback.print_exc()
         
-        
         if  self.player_num == self.leader_num:
             self.check = threading.Thread( target = self.check_mainloop, args = [] )
             self.check.setDaemon(True)
             self.check.start()
             
-
-
         clock = pygame.time.Clock()
+        self.update_all()
         while 1:
-            dt=clock.tick(30)
+            time.sleep(UPDATE_FREQUENCY)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return
@@ -696,19 +803,14 @@ class Game(object,Communicate):
                     sys.exit()
                     return
             # if all the flags have been collected , convey that you win the game
-            if (self.flags_collected[self.player_num] == len(self.playernum_hostip_dict)):
-                self.multicast_to_peers(I_WIN, self.my_peer_name)
-            
-            self.tilemap.update(dt / 1000.,self)
-            self.tilemap.draw(self.game_surface)
-            #used to update the player list tab on the left with the right message contents
-            self.show_on_screen_messages()
-            
-            screen.blit(self.game_surface,(210,0))
-            screen.blit(self.player_surface.area, (5, 5))
-            screen.blit(self.message_surface.area,(5,310))
-            
-            pygame.display.flip()        
+            if self.stall_update==False:
+                if (self.flags_collected[self.player_num] == len(self.playernum_hostip_dict)):
+                    self.multicast_to_peers(I_WIN, self.my_peer_name)
+                if (self.player_num == self.leader_list[0]):
+                    self.multicast_to_peers_data(UPDATE, '') 
+                
+            else:
+                self.allow_player_joined()      
 
 if __name__=='__main__':
     if len(sys.argv) < 4:
