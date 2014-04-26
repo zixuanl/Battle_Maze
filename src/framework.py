@@ -56,7 +56,9 @@ class Communicate:
                                    '1':{'up':'tanks/1_up.png','down':'tanks/1_down.png','left':'tanks/1_left.png','right':'tanks/1_right.png'},
                                    '2':{'up':'tanks/2_up.png','down':'tanks/2_down.png','left':'tanks/2_left.png','right':'tanks/2_right.png'},
                                    '3':{'up':'tanks/3_up.png','down':'tanks/3_down.png','left':'tanks/3_left.png','right':'tanks/3_right.png'},
-                                   '4':{'up':'tanks/4_up.png','down':'tanks/4_down.png','left':'tanks/4_left.png','right':'tanks/4_right.png'}
+                                   '4':{'up':'tanks/4_up.png','down':'tanks/4_down.png','left':'tanks/4_left.png','right':'tanks/4_right.png'},
+                                   '5':{'up':'tanks/5_up.png','down':'tanks/5_down.png','left':'tanks/5_left.png','right':'tanks/5_right.png'},
+                                   '6':{'up':'tanks/6_up.png','down':'tanks/6_down.png','left':'tanks/6_left.png','right':'tanks/6_right.png'}
                                    }
         
                 
@@ -89,7 +91,7 @@ class Communicate:
         """
         Dispatches messages from the socket connection
         """
-        not_remove_list=["MOVE", "FIRE", "FLAG"]
+        not_remove_list=["MOVE", "FIRE", "FLAG","UPDT"]
         host, port = clientsock.getpeername()
         peerconn = Handler_thread( None, host, port, clientsock, debug=False )
 
@@ -223,21 +225,9 @@ class Communicate:
         msgreply = []
         try:
             key = host+":"+port
-           # if self.connect_pool[key]:
-            #    print "I am alive...................",msgtype, msgdata
             peerconn = self.connect_pool[key]
             peerconn.send_data( msgtype, msgdata )
-            self.__debug( 'Sent %s: %s' % (pid, msgtype) )
-            #print "wrong here????"
-            '''
-            if waitreply:
-                onereply = peerconn.receive_data()
-                while (onereply != (None,None)):
-                    msgreply.append( onereply )
-                    self.__debug( 'Got reply %s: %s' % ( pid, str(msgreply)))
-                    onereply = peerconn.receive_data()
-            '''
-          #  peerconn.close()
+            self.__debug( 'Sent %s: %s' % (pid, msgtype))
         except KeyboardInterrupt:
             raise
         except:
@@ -246,6 +236,25 @@ class Communicate:
         return msgreply
 
 
+ #--------------------------------------------------------------------------
+    def contact_peer_with_msg_update( self, host, port, msgtype, msgdata,pid=None, waitreply=True ):
+    #--------------------------------------------------------------------------
+        """
+        Connects and sends a message to the specified host:port. The host's
+        reply, if expected, will be returned as a list of tuples.
+        """
+        msgreply = []
+        try:
+            key = host+":"+port
+            peerconn = self.update_pool[key]
+            peerconn.send_data( msgtype, msgdata )
+            self.__debug( 'Sent %s: %s' % (pid, msgtype))
+        except KeyboardInterrupt:
+            raise
+        except:
+            if self.debug:
+                traceback.print_exc()
+        return msgreply
 
 
     #--------------------------------------------------------------------------
@@ -306,15 +315,6 @@ class Communicate:
     def check_mainloop( self ):
     #--------------------------------------------------------------------------
         to_remove_list = []
-        #peerconn = {}
-        
-        '''
-        for key in self.playernum_hostip_dict:
-            value = self.playernum_hostip_dict[key].split(":")
-            host,port = value[0],value[1]
-            peerconn[self.playernum_hostip_dict[key]]=Handler_thread( None, host, port, debug=self.debug )
-        '''
-
         while 1:
             time.sleep(1)
             if self.dead_node:
@@ -333,17 +333,32 @@ class Communicate:
                     if self.playernum_hostip_dict[key] == item:
                         to_remove_key.append(key)
                 
-                
+            temp=[]  
             for key in to_remove_key:
-
-                self.contactbootstrap("DROP",self.my_peer_name,self.playernum_hostip_dict[key])
-                self.multicast_to_peers_data("DROP", self.playernum_hostip_dict[key])
+                data=str(self.game_id)+" "+str(self.playernum_hostip_dict[key])+" "+str(key)
+                self.contactbootstrap("DROP",None,data)
+                temp.append(self.playernum_hostip_dict[key])
                 del self.playernum_hostip_dict[key]
-
+                self.leader_list.remove(key)
+                self.sort_and_assign_leader()
+                if self.enemy[key]:
+                    print self.enemy[key].alive
+                    self.enemy[key].alive=False
+                    self.enemy.pop(key)
+                
+            for item in temp:
+                """
+                for key in self.playernum_hostip_dict:
+                    value = self.playernum_hostip_dict[key].split(":")
+                    host,port = value[0],value[1]
+                    self.contact_peer_with_msg(host, port, "DROP", item) 
+                """
+                self.multicast_to_peers_data("DROP", item)
+                
                 print "current game dictionary is"
                 print self.playernum_hostip_dict
                                 
-
+            temp=[]
             to_remove_key = []    
             to_remove_list = []
 

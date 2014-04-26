@@ -42,8 +42,10 @@ LEADER = "LEAD"
 LEAVING = "LEAV"
 DROP_NODE = "DROP"
 DEAD_NODE = "DEAD"
+HEART_BEAT = "HBMS"
 
 UPDATE_FREQUENCY = 0.03
+MAX_PLAYER_NUMBER=4
 # Test if a player can leave and Rejoin 
 REJOIN ="REJN"
 PEER_INFO_DETAILS_AFTERSTART="PIDA"
@@ -98,7 +100,7 @@ class Game(object,Communicate):
         
         host,port = firstpeer.split(':')
         self.t = threading.Thread( target = self.mainloop, args = [] )
-	self.t.setDaemon(True)
+        self.t.setDaemon(True)
         self.t.start()
 ###############################################################
         self.get_bootstrap()
@@ -113,11 +115,14 @@ class Game(object,Communicate):
         self.message_queue[self.player_num] = {}
         self.message_queue[self.player_num]['move'] = Queue.Queue(0)
         self.message_queue[self.player_num]['bullet'] = Queue.Queue(0)
-	self.message_queue[self.player_num]['flag'] = Queue.Queue(0)
+        self.message_queue[self.player_num]['flag'] = Queue.Queue(0)
         self.flags_collected[self.player_num] = 0
         self.playernum_hostip_dict[self.player_num]=self.my_peer_name
             
-	self.connect_pool={} 
+        self.connect_pool={}
+        self.update_pool={}
+        self.create_update_pool=False
+        
         pygame.init()
         self.screen = pygame.display.set_mode((1034, 624))
         # The first node to join the game is given the option to start the game. All others wait for him to start
@@ -233,36 +238,31 @@ class Game(object,Communicate):
 
     def __handle_node_drop(self,peerconn,data,peername):
     #--------------------------------------------------------------------------    
-        
-        print data
-        remove = None
-        for key in self.playernum_hostip_dict:
-            if self.playernum_hostip_dict[key] == data:
-                remove = key
-        if remove:
-            #Add code for removing the player from your screen
-            #add code for removing player from leader list
-            #add code for removing the static socket
-        
-            print remove
-            print self.leader_list
-            print self.enemy
-            self.playernum_hostip_dict.pop(remove)
-            self.leader_list.remove(remove)
-            self.sort_and_assign_leader()
-            if self.enemy[remove]:
-                print self.enemy[remove].alive
-                self.enemy[remove].alive=False
-                self.enemy.pop(remove)
+        print self.connect_pool
+        del self.connect_pool[data]
+        if self.player_num!=self.leader_num:
+            remove = None
+            for key in self.playernum_hostip_dict:
+                if self.playernum_hostip_dict[key] == data:
+                    remove = key
+            if remove:
+                self.playernum_hostip_dict.pop(remove)
+                self.leader_list.remove(remove)
+                self.sort_and_assign_leader()
+                if self.enemy[remove]:
+                    print self.enemy[remove].alive
+                    self.enemy[remove].alive=False
+                    self.enemy.pop(remove)
+        else:
+            del self.update_pool[data]
 
-        print "Current dictionary is :"
-        print self.playernum_hostip_dict
+            print "Current dictionary is : ",self.playernum_hostip_dict
   
     def __handle_move(self,peerconn,data,peername):
     #--------------------------------------------------------------------------    
         player_num = data.split(' ')[0]
         data = data.split(' ', 1)[1]
-        print 'received move message from', player_num
+        #print 'received move message from', player_num
         self.message_queue[player_num]['move'].put(data)
         
     
@@ -271,7 +271,7 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------        
         player_num = data.split(' ')[0]
         data = data.split(' ', 1)[1]
-        print 'received fire message from', player_num
+        #print 'received fire message from', player_num
         self.message_queue[player_num]['bullet'].put(data)
     
     #--------------------------------------------------------------------------    
@@ -279,7 +279,7 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------        
         player_num = data.split(' ')[0]
         data = data.split(' ', 1)[1]
-        print 'received flag message from', player_num, 'for flag', data
+        #print 'received flag message from', player_num, 'for flag', data
         self.flags_collected[player_num] += 1
         self.message_queue[data]['flag'].put(data)
         #self.add_message_to_queue(data,self.message_queue[player_num]['flag'])
@@ -343,14 +343,14 @@ class Game(object,Communicate):
             if self.my_peer_name!=self.bootstrap:
                 if players_game_id == self.game_id:
                     try:
+                        del self.connect_pool[self.playernum_hostip_dict[player_num]]
+                        if self.player_num==self.leader_num:
+                            del self.update_pool[self.playernum_hostip_dict[player_num]]
                         self.playernum_hostip_dict.pop(player_num)
                         self.leader_list.remove(player_num)
                         self.sort_and_assign_leader()
-                        print " PLAY HAS STARTED"
-                        print self.playernum_hostip_dict
                     except KeyError:
                         print "Key not found"
-                    
                     if self.enemy[player_num]:
                         print self.enemy[player_num].alive
                         self.enemy[player_num].alive=False
@@ -529,23 +529,51 @@ class Game(object,Communicate):
     def multicast_to_peers_data(self, message_type, data):
     #-------------------------------------------------------------------------- 
         if message_type==UPDATE:
+            self.playernum_hostip_dict_lock.acquire()
             try:
                 for key in self.playernum_hostip_dict:
                     value = self.playernum_hostip_dict[key].split(":")
                     host,port = value[0],value[1]
                     # print "Contacting peer", (host, port)
-                    self.contact_peer_with_msg(host, port, message_type, data)  
+                    self.contact_peer_with_msg_update(host, port, message_type, data)  
             except:
                 traceback.print_exc()
                 print ""
+            self.playernum_hostip_dict_lock.release()
+        
+        elif message_type==DROP_NODE:
+            for key in self.playernum_hostip_dict:
+                    value = self.playernum_hostip_dict[key].split(":")
+                    host,port = value[0],value[1]
+                    self.contact_peer_with_msg(host, port, "DROP", data)    
         else:
+            try:
+                for key in self.playernum_hostip_dict:
+                    value = self.playernum_hostip_dict[key].split(":")
+                    host,port = value[0],value[1]
+                    self.contact_peer_with_msg_static(host, port, message_type, data) 
+            except:
+                print ""
+    """--------------------------------------------END NODE CONTACT FUNCTIONS---------------------------------"""
+
+    def  create_update_pool_leader(self):
+        try:
             for key in self.playernum_hostip_dict:
                 value = self.playernum_hostip_dict[key].split(":")
                 host,port = value[0],value[1]
-                #print "Contacting peer", (host, port)
-                self.contact_peer_with_msg_static(host, port, message_type, data) 
+                self.update_pool[self.playernum_hostip_dict[key]] = Handler_thread( None, host, port, debug=self.debug )
+                print "create update connection to ",
+                print host,
+                print ":",
+                print port
+            self.create_update_pool=False
+        except KeyboardInterrupt:
+            raise
+        except:
+            if self.debug:
+                traceback.print_exc()
+            
 
-    """--------------------------------------------END NODE CONTACT FUNCTIONS---------------------------------"""
 
     #-------------------------------------------------------------------------- 
     def sort_and_assign_leader(self):
@@ -554,18 +582,31 @@ class Game(object,Communicate):
         if len(self.leader_list)>0:
                 self.leader_list.sort()
                 self.leader_num=self.leader_list[0]
+                self.create_update_pool=True
         self.leader_list_lock.release()
         
     
     def allow_player_joined(self):
-        player_number = self.last_joined
+        try: 
+            player_number = self.last_joined
+            print self.playernum_hostip_dict
         
-        start_cell = self.tilemap.layers['player'].find('player')[int(player_number)-1]
-        flag_cell = self.tilemap.layers['flags'].find('flag')[int(player_number)-1]
+            host,port = self.playernum_hostip_dict[player_number].split(":")
+            self.connect_pool[self.playernum_hostip_dict[player_number]]=Handler_thread(None,host,port,debug=self.debug)
+            print "Reconnected connection pool",self.connect_pool
         
-        self.enemy[player_number]=enemies((start_cell.px,start_cell.py),player_number,self.enemies)
-        self.tilemap.layers.append(self.enemies)
-        self.stall_update=False
+            if self.player_num == self.leader_num:
+                self.update_pool[self.playernum_hostip_dict[player_number]]=Handler_thread(None,host,port,debug=self.debug)
+            
+            start_cell = self.tilemap.layers['player'].find('player')[int(player_number)-1]
+            flag_cell = self.tilemap.layers['flags'].find('flag')[int(player_number)-1]
+        
+            self.enemy[player_number]=enemies((start_cell.px,start_cell.py),player_number,self.enemies)
+            self.tilemap.layers.append(self.enemies)
+        
+            self.stall_update=False
+        except:
+                traceback.print_exc()
           
     """--------------------------------------------ALL SCREEN DISPLAY FUNCTIONS---------------------------------"""
     
@@ -807,8 +848,9 @@ class Game(object,Communicate):
                 if (self.flags_collected[self.player_num] == len(self.playernum_hostip_dict)):
                     self.multicast_to_peers(I_WIN, self.my_peer_name)
                 if (self.player_num == self.leader_list[0]):
-                    self.multicast_to_peers_data(UPDATE, '') 
-                
+                    if self.create_update_pool==True:
+                        self.create_update_pool_leader()
+                    self.multicast_to_peers_data(UPDATE, '')      
             else:
                 self.allow_player_joined()      
 

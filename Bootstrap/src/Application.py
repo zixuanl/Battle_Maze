@@ -19,6 +19,8 @@ LEAVING = "LEAV"
 DROP_NODE = "DROP"
 DEAD_NODE = "DEAD"
 
+MAX_PLAYER_NUMBER=6
+
 class Game(object,Communicate):
     
     """
@@ -67,20 +69,7 @@ class Game(object,Communicate):
         This function is used only by the bootstrapping node and is called from "contactbootstrap" function
         This function is used to contact bootstrap for getting initial details and to inform bootstrap once all 
         nodes have started play so that it does not allow any more players
-        """
-        
-        """      
-        if self.game_id==2 and len(self.game_dict[self.game_id-1])==3:
-            player_number = len(self.game_dict[self.game_id-1])+1
-            if(len(self.game_dict[self.game_id-1])<=3):
-                peerconn.send_data(DETAILS,'%d %s %d %d' % (self.game_id-1,self.gameid_map_dict[self.game_id-1],len(self.game_dict[self.game_id-1]),player_number))
-                for peer_list in self.game_dict[self.game_id-1]:
-                    peerconn.send_data(PLAYER_LIST,'%s %s %d' % (peer_list,peer_list.split(":")[0],int(peer_list.split(":")[1])))
-                self.game_dict[self.game_id-1].append(data)
-        
-        print data
-        """
-        
+        """        
         if data in self.rejoin_thread_dict:
             temp_list=self.rejoin_thread_dict.pop(data)
             game_id=temp_list[1]
@@ -98,12 +87,12 @@ class Game(object,Communicate):
                 #Check if there is already a game with lesser than 4 users. If so add the user to it. If not create new game
                 if(self.game_id in self.game_dict):
                     player_number = len(self.game_dict[self.game_id])+1
-                    if(len(self.game_dict[self.game_id])<=3):
+                    if(len(self.game_dict[self.game_id])<=MAX_PLAYER_NUMBER-1):
                         peerconn.send_data(DETAILS,'%d %s %d %d' % (self.game_id,self.gameid_map_dict[self.game_id],len(self.game_dict[self.game_id]),player_number))
                         for peer_list in self.game_dict[self.game_id]:
                             peerconn.send_data(PLAYER_LIST,'%s %s %d' % (peer_list,peer_list.split(":")[0],int(peer_list.split(":")[1])))
                         self.game_dict[self.game_id].append(data)
-                        if(len(self.game_dict[self.game_id])==4):
+                        if(len(self.game_dict[self.game_id])==MAX_PLAYER_NUMBER):
                             self.game_id=self.game_id+1
                     print "Game dictionary is :"
                     print self.game_dict[self.game_id]
@@ -123,7 +112,7 @@ class Game(object,Communicate):
             #this condition is hit when a game is started with < 4 players
             else:
                     message,game_id = data.split(" ")
-                    if int(game_id)==int(self.game_id) and len(self.game_dict[self.game_id])!=4:
+                    if int(game_id)==int(self.game_id) and len(self.game_dict[self.game_id])!=MAX_PLAYER_NUMBER:
                         self.game_id=self.game_id+1
                         print "GAME ID" , self.game_id
                     peerconn.send_data(REPLY,'OK')
@@ -138,7 +127,7 @@ class Game(object,Communicate):
                 if peer_name in self.game_dict[int(players_game_id)]:
                     print " GAME DICT BEFORE REMOVING"
                     print self.game_dict[int(players_game_id)]
-                    if len(self.game_dict[int(players_game_id)])==4:
+                    if len(self.game_dict[int(players_game_id)])==MAX_PLAYER_NUMBER:
                         self.game_id=self.game_id-1
                     self.game_dict[int(players_game_id)].remove(peer_name)
                     print " GAME DICT AFTER REMOVING"
@@ -174,7 +163,7 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------         
     
         print "DATA IN LEAVING",data
-        gameid,peer_address,player_number,status = data.split(" ")
+        gameid,peer_address,player_number = data.split(" ")
         print gameid,peer_address,player_number
         self.rejoin_thread_dict[peer_address]=[threading.Thread(target=self.rejoin_thread_time,args=[peer_address]),gameid,player_number]
         print self.rejoin_thread_dict[peer_address]
