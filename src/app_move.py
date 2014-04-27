@@ -566,6 +566,11 @@ class Game(object,Communicate):
                 print host,
                 print ":",
                 print port
+                
+                self.check = threading.Thread( target = self.check_mainloop, args = [] )
+                self.check.setDaemon(True)
+                self.check.start()
+                
             self.create_update_pool=False
         except KeyboardInterrupt:
             raise
@@ -824,12 +829,12 @@ class Game(object,Communicate):
         except:
             if self.debug:
                 traceback.print_exc()
-        
+        """  
         if  self.player_num == self.leader_num:
             self.check = threading.Thread( target = self.check_mainloop, args = [] )
             self.check.setDaemon(True)
             self.check.start()
-            
+        """      
         clock = pygame.time.Clock()
         self.update_all()
         while 1:
