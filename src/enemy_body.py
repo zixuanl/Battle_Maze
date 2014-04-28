@@ -38,12 +38,14 @@ class enemies(pygame.sprite.Sprite,Communicate):
         Communicate.__init__(self)
         super(enemies,self).__init__(*groups)
         self.image=pygame.image.load(self.player_tank_map[player_num]['up'])
+        self.rect=pygame.rect.Rect(location,(self.image.get_width()-4,self.image.get_height()-4))
+        self.start_rect = self.rect.copy()
         self.up_image = pygame.image.load(self.player_tank_map[player_num]['up'])
         self.left_image = pygame.image.load(self.player_tank_map[player_num]['left'])
         self.right_image = pygame.image.load(self.player_tank_map[player_num]['right'])
         self.down_image = pygame.image.load(self.player_tank_map[player_num]['down'])
         self.direction = 2
-        self.rect=pygame.rect.Rect(location,(self.image.get_width()-4,self.image.get_height()-4))
+        
         self.guncooldown=0
         self.blockwallcooldown=0
         self.firecount=5
@@ -51,11 +53,20 @@ class enemies(pygame.sprite.Sprite,Communicate):
         self.player_num = player_num
     def update(self,dt,game):
         
-        if self.alive==False:
-            self.kill()
+        if game.stall_update==True:
+            return
+        
+        if self.alive == False:
+            self.alive = True
+            print 'Enemy Dead: updating...', self.killer
+            self.rect = self.start_rect.copy()
+            game.flags_collected[self.killer] = game.flags_collected[self.killer] + game.flags_collected[self.player_num]
+            game.flags_collected[self.player_num] = 0
+            print 'Flags count: ', game.flags_collected[self.player_num], game.flags_collected[self.killer]
+            
         
         key=pygame.key.get_pressed()
-        last_position = self.rect.copy()
+     #   last_position = self.rect.copy()
         
         #print 'enemy number:', self.player_num
         
@@ -64,13 +75,13 @@ class enemies(pygame.sprite.Sprite,Communicate):
             data = queue.get()
             direction = int(data)
             if direction == 2:
-                bullet(self.rect.midtop,2,game.sprites)
+                bullet(self.rect.midtop,2,self.player_num,game.sprites)
             elif direction == -2:
-                bullet(self.rect.midbottom,-2,game.sprites)
+                bullet(self.rect.midbottom,-2,self.player_num,game.sprites)
             elif direction == -1:
-                bullet(self.rect.midleft,-1,game.sprites)
+                bullet(self.rect.midleft,-1,self.player_num,game.sprites)
             elif direction == 1:
-                bullet(self.rect.midright,1,game.sprites)
+                bullet(self.rect.midright,1,self.player_num,game.sprites)
         
         queue = game.message_queue[self.player_num]['move']
         while queue.empty() != True:

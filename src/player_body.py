@@ -44,17 +44,29 @@ class player(pygame.sprite.Sprite,Communicate):
         
         self.direction = 2
         self.rect=pygame.rect.Rect(location,(self.image.get_width()-4,self.image.get_height()-4))
+        self.start_rect = self.rect.copy()
         self.guncooldown=0
         self.blockwallcooldown=0
         self.firecount=5
+        self.alive = True
     
-        self.action_flag=-2 # MOVE = -1 , Fire = 1 , Bullet = 0
+        self.action_flag=-1 # MOVE = 0 , Fire = 1, Bullet = 2
     
     def update(self,dt,game):
         #print 'updating...'
+        
         if player.game_over=='true':
             game.show_loser_screen()
             self.kill()
+            
+        if self.alive == False:
+            self.alive = True
+            print 'Player Dead: updating...', self.killer, game.player_num
+            self.rect = self.start_rect.copy()
+            game.flags_collected[self.killer] = game.flags_collected[self.killer] + game.flags_collected[game.player_num]
+            game.flags_collected[game.player_num] = 0
+            print 'Flags count: ', game.flags_collected[game.player_num], game.flags_collected[self.killer]
+            
         key=pygame.key.get_pressed()
         
         queue = game.message_queue[game.player_num]['bullet']
@@ -62,20 +74,20 @@ class player(pygame.sprite.Sprite,Communicate):
             data = queue.get()
             direction = int(data)
             if direction == 2:
-                bullet(self.rect.midtop,2,game.sprites)
+                bullet(self.rect.midtop,2,game.player_num,game.sprites)
             elif direction == -2:
-                bullet(self.rect.midbottom,-2,game.sprites)
+                bullet(self.rect.midbottom,-2,game.player_num,game.sprites)
             elif direction == -1:
-                bullet(self.rect.midleft,-1,game.sprites)
+                bullet(self.rect.midleft,-1,game.player_num,game.sprites)
             elif direction == 1:
-                bullet(self.rect.midright,1,game.sprites)
+                bullet(self.rect.midright,1,game.player_num,game.sprites)
         
         queue = game.message_queue[game.player_num]['move']
         while queue.empty() != True:
             data = queue.get()
-            print 'processing data...', data
+            #print 'processing data...', data
             x, y, direction = data.split(' ')
-            print x, y, direction
+            #print x, y, direction
             self.rect.x = int(x)
             self.rect.y = int(y)
             if int(direction) == 1:
@@ -92,30 +104,28 @@ class player(pygame.sprite.Sprite,Communicate):
                 self.direction = -2
         
         last_position = self.rect.copy()
-        new = self.rect.copy()
+        new_rect = self.rect.copy()
         
         if key[pygame.K_RIGHT]:    
-            new.x = new.x + 10
+            new_rect.x = new_rect.x + 10
             self.direction = 1
-            self.action_flag=-1
-        
+            self.action_flag = 0
         elif key[pygame.K_LEFT]:
-            new.x = new.x - 10
-            self.direction=-1
-            self.action_flag=-1
-            
+            new_rect.x = new_rect.x - 10
+            self.direction = -1
+            self.action_flag = 0
         elif key[pygame.K_UP]:
-            new.y = new.y - 10
-            self.direction=2
-            self.action_flag=-1
-           
+            new_rect.y = new_rect.y - 10
+            self.direction = 2
+            self.action_flag = 0
         elif key[pygame.K_DOWN]:
-            new.y = new.y + 10
-            self.direction=-2
-            self.action_flag=-1
+            new_rect.y = new_rect.y + 10
+            self.direction = -2
+            self.action_flag = 0
         elif key[pygame.K_SPACE] and not self.guncooldown:
             self.action_flag = 1
             self.guncooldown = 1
+            
         self.guncooldown = max(0, self.guncooldown - dt)
         
         if key[pygame.K_LSHIFT] and self.firecount>0 and not self.blockwallcooldown:
@@ -134,21 +144,21 @@ class player(pygame.sprite.Sprite,Communicate):
         if pygame.sprite.spritecollide(self, game.blockwall,False):
             self.rect = last_position
         
-        for cell in game.tilemap.layers['collision'].collide(new,"blocker"):
-            if last_position.right <= cell.left and new.right > cell.left:
-                new.right = cell.left
-            if last_position.left >= cell.right and new.left < cell.right:
-                new.left = cell.right
-            if last_position.bottom <= cell.top and new.bottom > cell.top:
-                new.bottom = cell.top
-            if last_position.top >= cell.bottom and new.top < cell.bottom:
-                new.top = cell.bottom
-        game.tilemap.set_focus(new.x, new.y)
+        for cell in game.tilemap.layers['collision'].collide(new_rect,"blocker"):
+            if last_position.right <= cell.left and new_rect.right > cell.left:
+                new_rect.right = cell.left
+            if last_position.left >= cell.right and new_rect.left < cell.right:
+                new_rect.left = cell.right
+            if last_position.bottom <= cell.top and new_rect.bottom > cell.top:
+                new_rect.bottom = cell.top
+            if last_position.top >= cell.bottom and new_rect.top < cell.bottom:
+                new_rect.top = cell.bottom
+        game.tilemap.set_focus(new_rect.x, new_rect.y)
         
-        if self.action_flag==-1:
-            data = str(game.player_num) + ' ' + str(new.x) + " " + str(new.y) + " " + str(self.direction)
+        if self.action_flag == 0:
+            data = str(game.player_num) + ' ' + str(new_rect.x) + " " + str(new_rect.y) + " " + str(self.direction)
             game.multicast_to_peers_data(MOVE, data)
-        elif self.action_flag==1:
+        elif self.action_flag == 1:
             data = str(game.player_num) + ' ' + str(self.direction)
             game.multicast_to_peers_data(FIRE, data)
-        self.action_flag=-2
+        self.action_flag = -1

@@ -88,12 +88,13 @@ class fire(pygame.sprite.Sprite):
                 self.rect.x += self.direction * 400 * dt
 
 class bullet(pygame.sprite.Sprite):
-    def __init__(self,location,direction,*groups):
+    def __init__(self,location,direction,player_num,*groups):
         super(bullet,self).__init__(*groups)
         self.image = pygame.image.load("game_items/bullet.png")
         self.rect=pygame.rect.Rect(location,self.image.get_size())
         self.direction=direction
         self.lifespan=1
+        self.player_num = player_num
     
     def update(self, dt, game):
         self.lifespan -= dt
@@ -113,9 +114,20 @@ class bullet(pygame.sprite.Sprite):
             self.kill()
         if pygame.sprite.spritecollide(self, game.blockwall,False):
             self.kill()
-        if pygame.sprite.spritecollide(self, game.enemies,True):
+        enemies = pygame.sprite.spritecollide(self, game.enemies, False)
+        if enemies:
             self.kill()
-            print "Enemy Dead"
-        if pygame.sprite.spritecollide(self, game.players_sp,True):
+            for enemy in enemies:
+                print "Enemy Dead", self.player_num
+                enemy.killer = self.player_num
+                enemy.alive = False
+                
+            
+        players = pygame.sprite.spritecollide(self, game.players_sp, False)
+        if players:
             self.kill()
-            print "Player Dead"
+            for player in players:
+                print "Player Dead", self.player_num
+                player.killer = self.player_num
+                player.alive = False
+                

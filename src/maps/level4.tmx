@@ -991,6 +991,16 @@
     <property name="player" value=""/>
    </properties>
   </object>
+  <object x="527" y="85" width="48" height="23">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
+  <object x="955" y="409" width="31" height="37">
+   <properties>
+    <property name="player" value=""/>
+   </properties>
+  </object>
  </objectgroup>
  <objectgroup name="flags" width="94" height="63" visible="0">
   <object x="577" y="277" width="46" height="19">
@@ -1009,6 +1019,16 @@
    </properties>
   </object>
   <object x="1015" y="739" width="52" height="24">
+   <properties>
+    <property name="flag" value=""/>
+   </properties>
+  </object>
+  <object x="523" y="566" width="29" height="51">
+   <properties>
+    <property name="flag" value=""/>
+   </properties>
+  </object>
+  <object x="1390" y="89" width="39" height="37">
    <properties>
     <property name="flag" value=""/>
    </properties>

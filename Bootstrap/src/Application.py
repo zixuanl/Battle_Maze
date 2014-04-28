@@ -6,7 +6,7 @@ Created on Apr 19, 2014
 from Framework import *
 import random
 import sys
-
+import time
 
 PLAYER_LIST="PLAY"
 REPLY = "REPL"
@@ -16,6 +16,10 @@ DETAILS="DETL" # bootstrap replies with this as first message followed by PLAYER
 PLAY_START="PSTA"
 INFORM_GAME_END_BOOTSTRAP="OVER"
 LEAVING = "LEAV"
+DROP_NODE = "DROP"
+DEAD_NODE = "DEAD"
+
+MAX_PLAYER_NUMBER=6
 
 class Game(object,Communicate):
     
@@ -30,14 +34,31 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------
         
         Communicate.__init__(self, maxpeers, serverport)
+        
         handlers = {
-                    GAME_START:self.__handle_gamestart,INFORM_GAME_END_BOOTSTRAP: self.__handle_game_end_bootstrap,LEAVING:self.__handle_player_leaving_gracious
+                GAME_START:self.__handle_gamestart,INFORM_GAME_END_BOOTSTRAP: self.__handle_game_end_bootstrap,LEAVING:self.__handle_player_leaving_gracious,DROP_NODE: self.__handle_player_leaving_suddenly
                     }
+       
         self.my_peer_name=firstpeer
         for mt in handlers:
             self.add_event_handler(mt, handlers[mt])
         self.t = threading.Thread( target = self.mainloop, args = [] )
-        self.t.start()           
+        self.t.start()
+        
+        self.rejoin_thread_dict={}
+   
+    #--------------------------------------------------------------------------
+    def __handle_drop_node(self,peerconn,data,peername):
+    #--------------------------------------------------------------------------  
+
+        print "Got Drop message"
+
+        #This is where you need to deal with the lost node
+        #This data contains ip:host of the lost node 
+        print data
+
+
+          
     #--------------------------------------------------------------------------
     def __handle_gamestart(self, peerconn,data,peername):
     #--------------------------------------------------------------------------
@@ -48,43 +69,55 @@ class Game(object,Communicate):
         This function is used only by the bootstrapping node and is called from "contactbootstrap" function
         This function is used to contact bootstrap for getting initial details and to inform bootstrap once all 
         nodes have started play so that it does not allow any more players
-        """
-        # This condition is hit when nodes require initial set up details
-        if not "STARTED" in data:
-            self.game_dict_lock.acquire()
-            #Check if there is already a game with lesser than 4 users. If so add the user to it. If not create new game
-            if(self.game_id in self.game_dict):
-                player_number = len(self.game_dict[self.game_id])+1
-                if(len(self.game_dict[self.game_id])<=3):
-                    peerconn.send_data(DETAILS,'%d %s %d %d' % (self.game_id,self.gameid_map_dict[self.game_id],len(self.game_dict[self.game_id]),player_number))
-                    for peer_list in self.game_dict[self.game_id]:
-                        peerconn.send_data(PLAYER_LIST,'%s %s %d' % (peer_list,peer_list.split(":")[0],int(peer_list.split(":")[1])))
-                    self.game_dict[self.game_id].append(data)
-                    if(len(self.game_dict[self.game_id])==4):
-                        self.game_id=self.game_id+1
-                print "Game dictionary is :"
-                print self.game_dict[self.game_id]
-            
-            #create new game for the given game-id and add user to it
-            else:
-                map_id=random.randint(1, 4)
-                print self.available_maps_dict[map_id]    
-                self.game_dict[self.game_id]=[]
-                player_number = len(self.game_dict[self.game_id])+1
-                peerconn.send_data(DETAILS,'%d %s %d %d' % (self.game_id,self.available_maps_dict[map_id],len(self.game_dict[self.game_id]), player_number))
-                self.game_dict[self.game_id].append(data)
-                self.gameid_map_dict[self.game_id]=self.available_maps_dict[map_id]
-                print "Game dictionary is :"
-                print self.game_dict[self.game_id]
-            self.game_dict_lock.release()
-        #this condition is hit when a game is started with < 4 players
+        """        
+        if data in self.rejoin_thread_dict:
+            temp_list=self.rejoin_thread_dict.pop(data)
+            game_id=temp_list[1]
+            player_number=temp_list[2]
+            self.game_dict[int(game_id)].append(data)
+            peerconn.send_data(DETAILS,'%d %s %d %d' % (int(game_id),self.gameid_map_dict[int(game_id)],len(self.game_dict[int(game_id)])-1,int(player_number)))
+            for peer_list in self.game_dict[int(game_id)]:
+                if peer_list!=data:
+                    peerconn.send_data(PLAYER_LIST,'%s %s %d' % (peer_list,peer_list.split(":")[0],int(peer_list.split(":")[1])))
         else:
-                message,game_id = data.split(":")
-                if int(game_id)==int(self.game_id) and len(self.game_dict[self.game_id])!=4:
-                    self.game_id=self.game_id+1
-                peerconn.send_data(REPLY,'OK')
+            # This condition is hit when nodes require initial set up details
+            print "in else of game start" , data
+            if not "STARTED" in data:
+                self.game_dict_lock.acquire()
+                #Check if there is already a game with lesser than 4 users. If so add the user to it. If not create new game
+                if(self.game_id in self.game_dict):
+                    player_number = len(self.game_dict[self.game_id])+1
+                    if(len(self.game_dict[self.game_id])<=MAX_PLAYER_NUMBER-1):
+                        peerconn.send_data(DETAILS,'%d %s %d %d' % (self.game_id,self.gameid_map_dict[self.game_id],len(self.game_dict[self.game_id]),player_number))
+                        for peer_list in self.game_dict[self.game_id]:
+                            peerconn.send_data(PLAYER_LIST,'%s %s %d' % (peer_list,peer_list.split(":")[0],int(peer_list.split(":")[1])))
+                        self.game_dict[self.game_id].append(data)
+                        if(len(self.game_dict[self.game_id])==MAX_PLAYER_NUMBER):
+                            self.game_id=self.game_id+1
+                    print "Game dictionary is :"
+                    print self.game_dict[self.game_id]
                 
-        #-------------------------------------------------------------------------- 
+                #create new game for the given game-id and add user to it
+                else:
+                    map_id=random.randint(1, 4)
+                    print self.available_maps_dict[map_id]    
+                    self.game_dict[self.game_id]=[]
+                    player_number = len(self.game_dict[self.game_id])+1
+                    peerconn.send_data(DETAILS,'%d %s %d %d' % (self.game_id,self.available_maps_dict[map_id],len(self.game_dict[self.game_id]), player_number))
+                    self.game_dict[self.game_id].append(data)
+                    self.gameid_map_dict[self.game_id]=self.available_maps_dict[map_id]
+                    print "Game dictionary is :"
+                    print self.game_dict[self.game_id]
+                self.game_dict_lock.release()
+            #this condition is hit when a game is started with < 4 players
+            else:
+                    message,game_id = data.split(" ")
+                    if int(game_id)==int(self.game_id) and len(self.game_dict[self.game_id])!=MAX_PLAYER_NUMBER:
+                        self.game_id=self.game_id+1
+                        print "GAME ID" , self.game_id
+                    peerconn.send_data(REPLY,'OK')
+                
+    #-------------------------------------------------------------------------- 
     def __handle_player_leaving_gracious(self,peerconn,data,peername):
     #--------------------------------------------------------------------------     
        
@@ -94,29 +127,60 @@ class Game(object,Communicate):
                 if peer_name in self.game_dict[int(players_game_id)]:
                     print " GAME DICT BEFORE REMOVING"
                     print self.game_dict[int(players_game_id)]
-                    if len(self.game_dict[int(players_game_id)])==4:
+                    if len(self.game_dict[int(players_game_id)])==MAX_PLAYER_NUMBER:
                         self.game_id=self.game_id-1
                     self.game_dict[int(players_game_id)].remove(peer_name)
                     print " GAME DICT AFTER REMOVING"
                     print self.game_dict[int(players_game_id)]
                 self.game_dict_lock.release()
         elif play_start=="True":
+            
+            if peer_name=="128.237.224.170:12341" or peer_name=="128.237.224.170:12342":
+                print " In rejoin test case"
+                print "DATA ",data
+                self.__handle_player_leaving_suddenly(peerconn, data, peername)
+                return
+            
             print "peer_name"+" popped"
             if peer_name in self.game_dict[int(players_game_id)]:
                         self.game_dict[int(players_game_id)].remove(peer_name)
             print " GAME DICT AFTER REMOVING"
             print self.game_dict[int(players_game_id)]
  
+  
     #--------------------------------------------------------------------------
     def __handle_game_end_bootstrap(self,peerconn,data,peername):
     #--------------------------------------------------------------------------  
-        gameid,winnername,winnerid=data.splot(" ")
+        gameid,winnername,winnerid=data.split(" ")
         print "GAME END"
         print self.game_dict
         if gameid in self.game_dict:
             del self.game_dict[gameid]
         print self.game_dict
+    
+    #--------------------------------------------------------------------------
+    def __handle_player_leaving_suddenly(self,peerconn,data,peername):
+    #--------------------------------------------------------------------------         
+    
+        print "DATA IN LEAVING",data
+        gameid,peer_address,player_number = data.split(" ")
+        print gameid,peer_address,player_number
+        self.rejoin_thread_dict[peer_address]=[threading.Thread(target=self.rejoin_thread_time,args=[peer_address]),gameid,player_number]
+        print self.rejoin_thread_dict[peer_address]
+        self.game_dict[int(gameid)].remove(peer_address)
+        print self.game_dict
+        self.rejoin_thread_dict[peer_address][0].start()     
         
+    #--------------------------------------------------------------------------
+    def rejoin_thread_time(self,peername):
+    #--------------------------------------------------------------------------  
+        
+        time.sleep(40)
+        print peername
+        print self.rejoin_thread_dict
+        if peername in self.rejoin_thread_dict:
+            temp_list=self.rejoin_thread_dict.pop(peername)
+            players_game_id = temp_list[1]       
     #--------------------------------------------------------------------------
     def main(self, screen):
     #--------------------------------------------------------------------------    
