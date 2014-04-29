@@ -603,7 +603,7 @@ class Game(object,Communicate):
                 print ":",
                 print port
                 
-                #self.check = threading.Thread( target = self.check_mainloop, args = [] )
+                self.check = threading.Thread( target = self.check_mainloop, args = [] )
                 self.check.setDaemon(True)
                 self.check.start()
                 
