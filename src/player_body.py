@@ -57,6 +57,7 @@ class player(pygame.sprite.Sprite,Communicate):
         #print 'updating...'
         
         if self.alive == False:
+            print 'Here'
             self.kill()
             
         if self.killed == True:
