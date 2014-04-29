@@ -36,7 +36,10 @@ class Game(object,Communicate):
         Communicate.__init__(self, maxpeers, serverport)
         
         handlers = {
-                GAME_START:self.__handle_gamestart,INFORM_GAME_END_BOOTSTRAP: self.__handle_game_end_bootstrap,LEAVING:self.__handle_player_leaving_gracious,DROP_NODE: self.__handle_player_leaving_suddenly
+                GAME_START:self.__handle_gamestart,
+                INFORM_GAME_END_BOOTSTRAP: self.__handle_game_end_bootstrap,
+                LEAVING:self.__handle_player_leaving_gracious,
+                DROP_NODE: self.__handle_player_leaving_suddenly
                     }
        
         self.my_peer_name=firstpeer
@@ -176,7 +179,7 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------  
         
         time.sleep(40)
-        print peername
+        print 'timeout: delete it from the game', peername
         print self.rejoin_thread_dict
         if peername in self.rejoin_thread_dict:
             temp_list=self.rejoin_thread_dict.pop(peername)

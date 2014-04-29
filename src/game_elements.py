@@ -120,7 +120,7 @@ class bullet(pygame.sprite.Sprite):
             for enemy in enemies:
                 print "Enemy Dead", self.player_num
                 enemy.killer = self.player_num
-                enemy.alive = False
+                enemy.killed = True
                 
             
         players = pygame.sprite.spritecollide(self, game.players_sp, False)
@@ -129,5 +129,5 @@ class bullet(pygame.sprite.Sprite):
             for player in players:
                 print "Player Dead", self.player_num
                 player.killer = self.player_num
-                player.alive = False
+                player.killed = True
                 

@@ -49,18 +49,18 @@ class player(pygame.sprite.Sprite,Communicate):
         self.blockwallcooldown=0
         self.firecount=5
         self.alive = True
+        self.killed = False
     
         self.action_flag=-1 # MOVE = 0 , Fire = 1, Bullet = 2
     
     def update(self,dt,game):
         #print 'updating...'
         
-        if player.game_over=='true':
-            game.show_loser_screen()
+        if self.alive == False:
             self.kill()
             
-        if self.alive == False:
-            self.alive = True
+        if self.killed == True:
+            self.killed = False
             print 'Player Dead: updating...', self.killer, game.player_num
             self.rect = self.start_rect.copy()
             game.flags_collected[self.killer] = game.flags_collected[self.killer] + game.flags_collected[game.player_num]

@@ -50,6 +50,7 @@ class enemies(pygame.sprite.Sprite,Communicate):
         self.blockwallcooldown=0
         self.firecount=5
         self.alive=True
+        self.killed = False
         self.player_num = player_num
     def update(self,dt,game):
         
@@ -57,7 +58,10 @@ class enemies(pygame.sprite.Sprite,Communicate):
             return
         
         if self.alive == False:
-            self.alive = True
+            self.kill()
+            
+        if self.killed == True:
+            self.alive = False
             print 'Enemy Dead: updating...', self.killer
             self.rect = self.start_rect.copy()
             game.flags_collected[self.killer] = game.flags_collected[self.killer] + game.flags_collected[self.player_num]

@@ -96,6 +96,9 @@ class Game(object,Communicate):
         self.flags_collected = {}
         self.message_queue = {}
         self.update_count = 0
+        
+        self.game_over = False
+        self.win = False
 
         self.stall_update=False
         self.last_joined = ""
@@ -111,7 +114,7 @@ class Game(object,Communicate):
 ###############################################################   
         #PLEASE uncomment and assign your IP to the following for testing to make it work on your machine
 
-        self.bootstrap='128.237.219.93:12345'       
+        self.bootstrap='128.237.223.140:12345'       
         
         self.contactbootstrap(GAME_START,firstpeer) #contact bootstrap to get required information
             
@@ -239,7 +242,6 @@ class Game(object,Communicate):
             peerconn.send_data(PEER_INFO_DETAILS,'%s %s %s' % (self.game_id,self.my_peer_name,self.player_num))
     
     #--------------------------------------------------------------------------  
-
     def __handle_node_drop(self,peerconn,data,peername):
     #--------------------------------------------------------------------------    
         print self.connect_pool
@@ -262,6 +264,7 @@ class Game(object,Communicate):
 
             print "Current dictionary is : ",self.playernum_hostip_dict
   
+    #--------------------------------------------------------------------------   
     def __handle_move(self,peerconn,data,peername):
     #--------------------------------------------------------------------------    
         player_num = data.split(' ')[0]
@@ -315,10 +318,25 @@ class Game(object,Communicate):
     
     def check_count(self):
         while 1:
+            if (self.game_over == True or self.win == True):
+                break
+            
             time.sleep(CHECK_COUNT_FREQUENCY)
             #print 'Checking update count', self.update_count
             if (self.update_count <= 0):
                 print 'Leader dead!'
+                key = self.leader_num
+                
+                data = str(self.game_id) + ' ' + str(self.playernum_hostip_dict[key]) + ' ' + str(key)
+                self.contactbootstrap("DROP", None, data)
+                
+                del self.playernum_hostip_dict[key]
+                self.leader_list.remove(key)
+                self.sort_and_assign_leader()
+                self.enemy[key].alive = False
+                self.enemy.pop(key)
+                    
+                
             self.update_count = 0
     
     def add_message_to_queue(self,message,queue):
@@ -374,6 +392,7 @@ class Game(object,Communicate):
                         print self.enemy[player_num].alive
                         self.enemy[player_num].alive=False
                         self.enemy.pop(player_num)
+    
     #--------------------------------------------------------------------------  
     def __handle_game_end_peers(self,peerconn,data,peername):
     #-------------------------------------------------------------------------- 
@@ -384,8 +403,9 @@ class Game(object,Communicate):
             self.playernum_hostip_dict_lock.acquire()
             if(self.playernum_hostip_dict[winnerid]==winnername):
                 peerconn.send_data(I_LOST,'%s' %self.my_peer_name)
-                player.game_over='true'
+                
             self.playernum_hostip_dict_lock.release()
+        self.game_over = True
   
     #--------------------------------------------------------------------------
     def __handle_peername(self,peerconn,data,peername):
@@ -507,9 +527,6 @@ class Game(object,Communicate):
                         acknowledgements = acknowledgements +1
                 self.playernum_hostip_dict_lock.release()
             self.contactbootstrap(INFORM_GAME_END_BOOTSTRAP,self.my_peer_name) 
-            Game.show_winner_screen(self)       
-            pygame.quit()
-            sys.exit()
             
         elif messagetype==PLAY_START:
             data = "START GAME"
@@ -586,7 +603,7 @@ class Game(object,Communicate):
                 print ":",
                 print port
                 
-                self.check = threading.Thread( target = self.check_mainloop, args = [] )
+                #self.check = threading.Thread( target = self.check_mainloop, args = [] )
                 self.check.setDaemon(True)
                 self.check.start()
                 
@@ -874,11 +891,16 @@ class Game(object,Communicate):
             # if all the flags have been collected , convey that you win the game
             if self.stall_update==False:
                 if (self.flags_collected[self.player_num] == len(self.playernum_hostip_dict)):
+                    self.win = True
                     self.multicast_to_peers(I_WIN, self.my_peer_name)
+                    self.show_winner_screen()
+                if self.game_over == True:
+                    print 'Game over'
+                    self.show_loser_screen()
                 if (self.player_num == self.leader_list[0]):
                     if self.create_update_pool==True:
                         self.create_update_pool_leader()
-                    self.multicast_to_peers_data(UPDATE, '')      
+                    self.multicast_to_peers_data(UPDATE, '')
             else:
                 self.allow_player_joined()
 
