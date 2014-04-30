@@ -922,7 +922,7 @@ class Game(object,Communicate):
                     print 'Game over'
                     self.show_loser_screen()
                 #print self.player_num, self.leader_list[0]
-                if (self.player_num == self.leader_list[0]):
+                if (self.player_num == self.leader_num):
                     if self.create_update_pool==True:
                         self.create_update_pool_leader()
                     self.multicast_to_peers_data(UPDATE, self.player_num)
