@@ -114,7 +114,7 @@ class Game(object,Communicate):
 ###############################################################   
         #PLEASE uncomment and assign your IP to the following for testing to make it work on your machine
 
-        self.bootstrap='128.237.224.170:12345'
+        self.bootstrap='128.237.220.219:12345'
         
         self.contactbootstrap(GAME_START,firstpeer) #contact bootstrap to get required information
             
@@ -128,7 +128,7 @@ class Game(object,Communicate):
             
         self.connect_pool={}
         self.update_pool={}
-        self.create_update_pool=False
+        self.create_update_pool=False 
         
         pygame.init()
         self.screen = pygame.display.set_mode((1034, 624))
@@ -315,7 +315,7 @@ class Game(object,Communicate):
                 break
             
             time.sleep(CHECK_COUNT_FREQUENCY)
-            #print 'Checking update count', self.update_count
+            print 'Checking update count', self.update_count
             if (self.update_count <= 0):
                 print 'Leader dead!'
                 key = self.leader_num
@@ -905,6 +905,7 @@ class Game(object,Communicate):
                 if self.game_over == True:
                     print 'Game over'
                     self.show_loser_screen()
+                #print self.player_num, self.leader_list[0]
                 if (self.player_num == self.leader_list[0]):
                     if self.create_update_pool==True:
                         self.create_update_pool_leader()
