@@ -238,6 +238,8 @@ class Game(object,Communicate):
                 self.stall_update=True
             flags_data = ' '.join(map(str, self.flags_collected[self.player_num]))
             print flags_data
+            if (not flags_data):
+                flags_data = 'r'
             peerconn.send_data(PEER_INFO_DETAILS_AFTERSTART,'%s %s %s %s' % (self.game_id,self.my_peer_name,self.player_num,flags_data))
         else:
             print "PLAY_START_FALSE"
@@ -507,7 +509,8 @@ class Game(object,Communicate):
                 print self.playernum_hostip_dict
                 print received_messagetype
             if received_messagetype==PEER_INFO_DETAILS_AFTERSTART:
-                self.flags_collected[player_number] = map(int, flags_data.split())
+                if (flags_data != 'r'):
+                    self.flags_collected[player_number] = map(int, flags_data.split())
                 print "AFTER START CONSIDITION"
                 self.play_start=True
             self.peers_list_lock.release()
