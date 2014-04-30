@@ -93,7 +93,7 @@ class enemies(pygame.sprite.Sprite,Communicate):
             data = queue.get()
             #print 'processing data for enemy...', data
             x, y, direction = data.split(' ')
-            print x, y, direction
+            #print x, y, direction
             self.rect.x = int(x)
             self.rect.y = int(y)
             if int(direction) == 1:

@@ -168,11 +168,12 @@ class Game(object,Communicate):
         print "DATA IN LEAVING",data
         gameid,peer_address,player_number = data.split(" ")
         print gameid,peer_address,player_number
+        
         self.rejoin_thread_dict[peer_address]=[threading.Thread(target=self.rejoin_thread_time,args=[peer_address]),gameid,player_number]
         print self.rejoin_thread_dict[peer_address]
         self.game_dict[int(gameid)].remove(peer_address)
         print self.game_dict
-        self.rejoin_thread_dict[peer_address][0].start()     
+        self.rejoin_thread_dict[peer_address][0].start()
         
     #--------------------------------------------------------------------------
     def rejoin_thread_time(self,peername):
