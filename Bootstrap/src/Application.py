@@ -157,8 +157,8 @@ class Game(object,Communicate):
         gameid,winnername,winnerid=data.split(" ")
         print "GAME END"
         print self.game_dict
-        if gameid in self.game_dict:
-            del self.game_dict[gameid]
+        if int(gameid) in self.game_dict:
+            del self.game_dict[int(gameid)]
         print self.game_dict
     
     #--------------------------------------------------------------------------
