@@ -785,10 +785,13 @@ class Game(object,Communicate):
         for key in self.playernum_hostip_dict:
             data1 = data1+ str(key)+"    "+str(self.playernum_hostip_dict[key])+"\n\n"
         
+        data1 = data1 + "\n\n        CURRENT PLAYER\n " +"             Player " + str(self.player_num)
         self.player_surface.text=data1
         self.player_surface.update()
         
-        data2="             MESSAGES\n\n"
+        data2="       FLAGS COLLECTED\n\n"
+        for key in self.flags_collected:
+            data2 = data2+"Player " + str(key) + "                 "+str(self.flags_collected[key])+"\n\n"
         self.message_surface.text=data2
         self.message_surface.update()
     
