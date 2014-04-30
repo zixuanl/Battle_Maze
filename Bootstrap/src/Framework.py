@@ -81,6 +81,7 @@ class Communicate:
         peerconn = Handler_thread( None, host, port, clientsock, debug=False )
     
         try:
+            time.sleep(0.2)
             msgtype, msgdata = peerconn.receive_data()
             if msgtype: 
                 msgtype = msgtype.upper()
