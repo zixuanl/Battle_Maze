@@ -736,7 +736,7 @@ class Game(object,Communicate):
         background=pygame.image.load("title/you_win.png").convert()
         background = pygame.transform.scale(background, (1034,624))
         font = pygame.font.Font('freesansbold.ttf', 20)
-        message="Press Space to exit"
+        message="Press Escape to exit"
         while 1:
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
@@ -761,7 +761,7 @@ class Game(object,Communicate):
         background=pygame.image.load("title/game_over.png").convert()
         background = pygame.transform.scale(background, (1034,624))
         font = pygame.font.Font('freesansbold.ttf', 20)
-        message="Press Space to exit"
+        message="Press Escape to exit"
         while 1:
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
