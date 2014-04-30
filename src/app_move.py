@@ -508,11 +508,13 @@ class Game(object,Communicate):
                 print "LOCAL PLAYER DICTIONARY"
                 print self.playernum_hostip_dict
                 print received_messagetype
-            if received_messagetype==PEER_INFO_DETAILS_AFTERSTART:
-                if (flags_data != 'r'):
-                    self.flags_collected[player_number] = map(int, flags_data.split())
-                print "AFTER START CONSIDITION"
-                self.play_start=True
+                if received_messagetype==PEER_INFO_DETAILS_AFTERSTART:
+                    print flags_data
+                    if (flags_data != 'r'):
+                        self.flags_collected[player_number] = map(int, flags_data.split())
+                        print "AFTER START CONSIDITION"
+                    self.play_start=True
+            
             self.peers_list_lock.release()
             
         elif messagetype==I_WIN:
@@ -838,6 +840,7 @@ class Game(object,Communicate):
         
         collected = []
         for key in self.flags_collected:
+            print self.flags_collected[key]
             collected.extend(self.flags_collected[key])
         print 'Collected:', collected
         
