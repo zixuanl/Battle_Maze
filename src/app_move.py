@@ -785,6 +785,7 @@ class Game(object,Communicate):
             data1 = data1+ str(key)+"    "+str(self.playernum_hostip_dict[key])+"\n\n"
         
         data1 = data1 + "\n\n        CURRENT PLAYER\n " +"             Player " + str(self.player_num)
+        data1 = data1 + "\n\n        LEADER NUMBER \n " +"             Player " + str(self.leader_num)
         self.player_surface.text=data1
         self.player_surface.update()
         
