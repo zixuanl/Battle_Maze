@@ -44,14 +44,14 @@ DROP_NODE = "DROP"
 DEAD_NODE = "DEAD"
 HEART_BEAT = "HBMS"
 
-UPDATE_FREQUENCY = 0.03
-MAX_PLAYER_NUMBER=4
+MAX_PLAYER_NUMBER = 4
 # Test if a player can leave and Rejoin 
 REJOIN ="REJN"
 PEER_INFO_DETAILS_AFTERSTART="PIDA"
 
 UPDATE_FREQUENCY = 0.03
 CHECK_COUNT_FREQUENCY = 1
+WAIT_NEW_LEADER = 5
 
 class Game(object,Communicate):
     
@@ -114,7 +114,7 @@ class Game(object,Communicate):
 ###############################################################   
         #PLEASE uncomment and assign your IP to the following for testing to make it work on your machine
 
-        self.bootstrap='128.237.223.140:12345'       
+        self.bootstrap='128.237.214.194:12345'       
         
         self.contactbootstrap(GAME_START,firstpeer) #contact bootstrap to get required information
             
@@ -335,8 +335,9 @@ class Game(object,Communicate):
                 self.sort_and_assign_leader()
                 self.enemy[key].alive = False
                 self.enemy.pop(key)
-                    
                 
+                time.sleep(WAIT_NEW_LEADER)
+                    
             self.update_count = 0
     
     def add_message_to_queue(self,message,queue):
