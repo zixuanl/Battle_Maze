@@ -123,7 +123,7 @@ class Game(object,Communicate):
         self.message_queue[self.player_num]['move'] = Queue.Queue(0)
         self.message_queue[self.player_num]['bullet'] = Queue.Queue(0)
         self.message_queue[self.player_num]['flag'] = Queue.Queue(0)
-        self.flags_collected[self.player_num] = 0
+        self.flags_collected[self.player_num] = []
         self.playernum_hostip_dict[self.player_num]=self.my_peer_name
             
         self.connect_pool={}
@@ -225,7 +225,7 @@ class Game(object,Communicate):
         self.message_queue[player_number]['move'] = Queue.Queue(0)
         self.message_queue[player_number]['bullet'] = Queue.Queue(0)
         self.message_queue[player_number]['flag'] = Queue.Queue(0)
-        self.flags_collected[player_number] = 0
+        self.flags_collected[player_number] = []
             
         self.leader_list.append(player_number)
         
@@ -289,7 +289,7 @@ class Game(object,Communicate):
         player_num = data.split(' ')[0]
         data = data.split(' ', 1)[1]
         #print 'received flag message from', player_num, 'for flag', data
-        self.flags_collected[player_num] += 1
+        self.flags_collected[player_num].append(data)
         self.message_queue[data]['flag'].put(data)
         #self.add_message_to_queue(data,self.message_queue[player_num]['flag'])
     
@@ -301,19 +301,14 @@ class Game(object,Communicate):
         self.update_all()
     
     def update_all(self):
-        #dt = self.clock.tick(20)
-        #print dt
         self.tilemap.update(90 / 1000.,self)
         self.tilemap.draw(self.game_surface)
-        #used to update the player list tab on the left with the right message contents
+        
         self.show_on_screen_messages()
         self.screen2.blit(self.game_surface,(210,0))
         self.screen2.blit(self.player_surface.area, (5, 5))
         self.screen2.blit(self.message_surface.area,(5,310))
 
-        '''self.screen.blit(self.game_surface,(210,0))
-        self.screen.blit(self.player_surface.area, (5, 5))
-        self.screen.blit(self.message_surface.area,(5,310))'''
         pygame.display.flip()
     
     def check_count(self):
@@ -505,7 +500,7 @@ class Game(object,Communicate):
                 self.message_queue[player_number]['move'] = Queue.Queue(0)
                 self.message_queue[player_number]['bullet'] = Queue.Queue(0)
                 self.message_queue[player_number]['flag'] = Queue.Queue(0)
-                self.flags_collected[player_number] = 0
+                self.flags_collected[player_number] = []
                 print "LOCAL PLAYER DICTIONARY"
                 print self.playernum_hostip_dict
                 print received_messagetype
@@ -792,7 +787,7 @@ class Game(object,Communicate):
         
         data2="       FLAGS COLLECTED\n\n"
         for key in self.flags_collected:
-            data2 = data2+"Player " + str(key) + "                 "+str(self.flags_collected[key])+"\n\n"
+            data2 = data2+"Player " + str(key) + "                 "+str(len(self.flags_collected[key]))+"\n\n"
         self.message_surface.text=data2
         self.message_surface.update()
     
@@ -817,11 +812,8 @@ class Game(object,Communicate):
     #--------------------------------------------------------------------------
     def main(self, screen):
     #--------------------------------------------------------------------------    
-    
         self.screen2 = screen
-        """
-        The main function that actually starts the game
-        """
+        
         self.player_surface = txtlib.Text((200, 300), 'freesans',21)
         self.message_surface= txtlib.Text((200, 308), 'freesans',21)
         self.game_surface = pygame.Surface((824,624))
@@ -848,14 +840,13 @@ class Game(object,Communicate):
                 flag_cell = self.tilemap.layers['flags'].find('flag')[int(entry)-1]
                 self.enemy[entry]=enemies((start_cell.px,start_cell.py),entry,self.enemies)
                 self.flag_list[entry]=flags((flag_cell.px,flag_cell.py),entry,self.flag_layer)
+                #self.flag_rects[entry] = flag_cell
         
         self.tilemap.layers.append(self.sprites)
         self.tilemap.layers.append(self.blockwall)
         self.tilemap.layers.append(self.enemies)
         self.tilemap.layers.append(self.players_sp)
         self.tilemap.layers.append(self.flag_layer)
-
-        # create the connect_pool
 
         try:
             for key in self.playernum_hostip_dict:
@@ -871,16 +862,13 @@ class Game(object,Communicate):
         except:
             if self.debug:
                 traceback.print_exc()
-        """  
-        if  self.player_num == self.leader_num:
-            self.check = threading.Thread( target = self.check_mainloop, args = [] )
-            self.check.setDaemon(True)
-            self.check.start()
-        """      
+        
         clock = pygame.time.Clock()
         self.update_all()
         
         thread.start_new_thread(self.check_count, ())
+        
+        self.goal = len(self.playernum_hostip_dict)
         
         while 1:
             time.sleep(UPDATE_FREQUENCY)
@@ -895,7 +883,7 @@ class Game(object,Communicate):
                     return
             # if all the flags have been collected , convey that you win the game
             if self.stall_update==False:
-                if (self.flags_collected[self.player_num] == len(self.playernum_hostip_dict)):
+                if (len(self.flags_collected[self.player_num]) == self.goal):
                     self.win = True
                     self.multicast_to_peers(I_WIN, self.my_peer_name)
                     self.show_winner_screen()

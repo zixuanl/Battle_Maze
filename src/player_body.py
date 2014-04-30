@@ -57,15 +57,21 @@ class player(pygame.sprite.Sprite,Communicate):
         #print 'updating...'
         
         if self.alive == False:
-            print 'Here'
+            print 'Player', game.player_num, 'is dead'
+            print 'Flags in his hand', game.flags_collected[game.player_num]
+            for flag_num in game.flags_collected[game.player_num]:
+                flag_cell = game.tilemap.layers['flags'].find('flag')[int(flag_num)-1]
+                game.flag_list[flag_num] = flags((flag_cell.px,flag_cell.py),flag_num,game.flag_layer)
+            game.tilemap.layers.append(game.flag_layer)
+            del game.flags_collected[game.player_num]
             self.kill()
             
         if self.killed == True:
             self.killed = False
             print 'Player Dead: updating...', self.killer, game.player_num
             self.rect = self.start_rect.copy()
-            game.flags_collected[self.killer] = game.flags_collected[self.killer] + game.flags_collected[game.player_num]
-            game.flags_collected[game.player_num] = 0
+            game.flags_collected[self.killer].extend(game.flags_collected[game.player_num])
+            game.flags_collected[game.player_num] = []
             print 'Flags count: ', game.flags_collected[game.player_num], game.flags_collected[self.killer]
             
         key=pygame.key.get_pressed()

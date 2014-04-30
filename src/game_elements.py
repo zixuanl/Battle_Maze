@@ -47,6 +47,7 @@ class flags(pygame.sprite.Sprite):
         super(flags,self).__init__(*groups)
         self.image = pygame.image.load("game_items/flag.png")
         self.rect = pygame.rect.Rect(location,self.image.get_size())
+        self.start_rect = self.rect.copy()
         self.flag_num = flag_num
      
     def update(self,dt,game):
