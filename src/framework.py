@@ -347,12 +347,6 @@ class Communicate:
                     self.enemy.pop(key)
                 
             for item in temp:
-                """
-                for key in self.playernum_hostip_dict:
-                    value = self.playernum_hostip_dict[key].split(":")
-                    host,port = value[0],value[1]
-                    self.contact_peer_with_msg(host, port, "DROP", item) 
-                """
                 self.multicast_to_peers_data("DROP", item)
                 
                 print "current game dictionary is"
@@ -365,8 +359,6 @@ class Communicate:
             for key in self.playernum_hostip_dict:
                 value = self.playernum_hostip_dict[key].split(":")
                 host,port = value[0],value[1]
-                #print "send heart beat to"
-                #print self.playernum_hostip_dict[key]
                 self.contact_peer_with_msg(host, port, "HBMS", "Null") 
 
 

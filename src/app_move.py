@@ -114,7 +114,7 @@ class Game(object,Communicate):
 ###############################################################   
         #PLEASE uncomment and assign your IP to the following for testing to make it work on your machine
 
-        self.bootstrap='128.237.223.140:12345'
+        self.bootstrap='128.237.224.170:12345'
         
         self.contactbootstrap(GAME_START,firstpeer) #contact bootstrap to get required information
             
@@ -134,17 +134,11 @@ class Game(object,Communicate):
         self.screen = pygame.display.set_mode((1034, 624))
         # The first node to join the game is given the option to start the game. All others wait for him to start
         if int(self.number_peers) > 0:
-            #self.contactpeers(firstpeer)
             self.multicast_to_peers(PEER_INFO_DETAILS,self.my_peer_name)
             self.showstartscreen_rest()    
         elif int(self.number_peers)==0: #first node to join the game
             self.showstartscreen_first()
-            #once he starts, convey information to all peers so that they can start too
-            #self.convey_play_start(firstpeer)
-            print "LEADER_LIST , LEADER_NUM"
-            print self.leader_list , self.leader_num
-                
-     
+            
     #--------------------------------------------------------------------------
     def __onDestroy(self):
     #--------------------------------------------------------------------------
@@ -475,9 +469,7 @@ class Game(object,Communicate):
         elif messagetype==DEAD_NODE:
             self.contact_peer_with_msg(host,port,messagetype,data)
 
-
-            
-        
+     
     #--------------------------------------------------------------------------
     def multicast_to_peers(self,messagetype,peername):
     #--------------------------------------------------------------------------
@@ -602,16 +594,16 @@ class Game(object,Communicate):
             for key in self.playernum_hostip_dict:
                 value = self.playernum_hostip_dict[key].split(":")
                 host,port = value[0],value[1]
-                self.update_pool[self.playernum_hostip_dict[key]] = Handler_thread( None, host, port, debug=self.debug )
-                print "create update connection to ",
-                print host,
-                print ":",
-                print port
+                if self.playernum_hostip_dict[key] not in self.update_pool:
+                    self.update_pool[self.playernum_hostip_dict[key]] = Handler_thread( None, host, port, debug=self.debug )
+                    print "create update connection to ",
+                    print host,
+                    print ":",
+                    print port
                 
-                self.check = threading.Thread( target = self.check_mainloop, args = [] )
-                self.check.setDaemon(True)
-                self.check.start()
-                
+            self.check = threading.Thread( target = self.check_mainloop, args = [] )
+            self.check.setDaemon(True)
+            self.check.start()    
             self.create_update_pool=False
         except KeyboardInterrupt:
             raise
@@ -629,6 +621,7 @@ class Game(object,Communicate):
                 self.leader_list.sort()
                 self.leader_num=self.leader_list[0]
                 self.create_update_pool=True
+                print "LEADER_NUMBER : ", self.leader_num
         self.leader_list_lock.release()
         
     
@@ -637,6 +630,8 @@ class Game(object,Communicate):
             player_number = self.last_joined
             print self.playernum_hostip_dict
         
+            self.sort_and_assign_leader()
+            
             host,port = self.playernum_hostip_dict[player_number].split(":")
             self.connect_pool[self.playernum_hostip_dict[player_number]]=Handler_thread(None,host,port,debug=self.debug)
             print "Reconnected connection pool",self.connect_pool
