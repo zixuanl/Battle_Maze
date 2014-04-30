@@ -114,7 +114,7 @@ class Game(object,Communicate):
 ###############################################################   
         #PLEASE uncomment and assign your IP to the following for testing to make it work on your machine
 
-        self.bootstrap='128.237.223.140:12345'       
+        self.bootstrap='128.237.223.140:12345'
         
         self.contactbootstrap(GAME_START,firstpeer) #contact bootstrap to get required information
             
@@ -236,10 +236,12 @@ class Game(object,Communicate):
                 print "HI"
                 self.last_joined=player_number
                 self.stall_update=True
-            peerconn.send_data(PEER_INFO_DETAILS_AFTERSTART,'%s %s %s' % (self.game_id,self.my_peer_name,self.player_num))
+            flags_data = ' '.join(map(str, self.flags_collected[self.player_num]))
+            print flags_data
+            peerconn.send_data(PEER_INFO_DETAILS_AFTERSTART,'%s %s %s %s' % (self.game_id,self.my_peer_name,self.player_num,flags_data))
         else:
             print "PLAY_START_FALSE"
-            peerconn.send_data(PEER_INFO_DETAILS,'%s %s %s' % (self.game_id,self.my_peer_name,self.player_num))
+            peerconn.send_data(PEER_INFO_DETAILS,'%s %s %s %s' % (self.game_id,self.my_peer_name,self.player_num,'r'))
     
     #--------------------------------------------------------------------------  
     def __handle_node_drop(self,peerconn,data,peername):
@@ -493,7 +495,7 @@ class Game(object,Communicate):
                     return
                 
                 received_messagetype=resp[0][0]
-                gameid,peername,player_number= resp[0][1].split()
+                gameid,peername,player_number,flags_data= resp[0][1].split()
                 self.playernum_hostip_dict[player_number]=peername
                 self.leader_list.append(player_number)
                 self.message_queue[player_number] = {}
@@ -505,6 +507,7 @@ class Game(object,Communicate):
                 print self.playernum_hostip_dict
                 print received_messagetype
             if received_messagetype==PEER_INFO_DETAILS_AFTERSTART:
+                self.flags_collected[player_number] = map(int, flags_data.split())
                 print "AFTER START CONSIDITION"
                 self.play_start=True
             self.peers_list_lock.release()
@@ -830,16 +833,26 @@ class Game(object,Communicate):
         screen.blit(background,(0,0))
         pygame.display.flip()
         
+        collected = []
+        for key in self.flags_collected:
+            collected.extend(self.flags_collected[key])
+        print 'Collected:', collected
+        
         start_cell = self.tilemap.layers['player'].find('player')[int(self.player_num)-1]
         flag_cell = self.tilemap.layers['flags'].find('flag')[int(self.player_num)-1]
         self.player1 = player((start_cell.px, start_cell.py),self.player_num,self.players_sp)
-        self.flag_list[self.player_num]=flags((flag_cell.px,flag_cell.py),self.player_num,self.flag_layer)
+        if (int(self.player_num) not in collected):
+            self.flag_list[self.player_num]=flags((flag_cell.px,flag_cell.py),self.player_num,self.flag_layer)
+        
         for entry in self.playernum_hostip_dict:
             if (entry != self.player_num):
                 start_cell = self.tilemap.layers['player'].find('player')[int(entry)-1]
                 flag_cell = self.tilemap.layers['flags'].find('flag')[int(entry)-1]
                 self.enemy[entry]=enemies((start_cell.px,start_cell.py),entry,self.enemies)
-                self.flag_list[entry]=flags((flag_cell.px,flag_cell.py),entry,self.flag_layer)
+                #print entry
+                if (int(entry) not in collected):
+                    print 'hit'
+                    self.flag_list[entry]=flags((flag_cell.px,flag_cell.py),entry,self.flag_layer)
                 #self.flag_rects[entry] = flag_cell
         
         self.tilemap.layers.append(self.sprites)
