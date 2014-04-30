@@ -295,6 +295,21 @@ class Game(object,Communicate):
     def __handle_update(self,peerconn,data,peername):
     #--------------------------------------------------------------------------        
         #print "update"
+        source = data
+        #print data, self.leader_num
+        if (int(source) != int(self.leader_num)):
+            key = self.leader_num
+            print 'Update from a different player', source
+            self.leader_num = str(source)
+            if key in self.playernum_hostip_dict:
+                del self.playernum_hostip_dict[key]
+                self.leader_list.remove(key)
+                self.enemy[key].alive = False
+                self.enemy.pop(key)
+                del self.connect_pool[self.playernum_hostip_dict[key]]
+                print 'New leader:', source
+                
+            
         self.update_count += 1
         self.update_all()
     
@@ -323,6 +338,7 @@ class Game(object,Communicate):
                 data = str(self.game_id) + ' ' + str(self.playernum_hostip_dict[key]) + ' ' + str(key)
                 self.contactbootstrap("DROP", None, data)
                 
+                del self.connect_pool[self.playernum_hostip_dict[key]]
                 del self.playernum_hostip_dict[key]
                 self.leader_list.remove(key)
                 self.sort_and_assign_leader()
@@ -630,7 +646,7 @@ class Game(object,Communicate):
             player_number = self.last_joined
             print self.playernum_hostip_dict
         
-            self.sort_and_assign_leader()
+            #self.sort_and_assign_leader()
             
             host,port = self.playernum_hostip_dict[player_number].split(":")
             self.connect_pool[self.playernum_hostip_dict[player_number]]=Handler_thread(None,host,port,debug=self.debug)
@@ -723,8 +739,8 @@ class Game(object,Communicate):
             hosts="                 Hosts Joined :   "
         if flag==1:
             self.showstartscreen_first()
-        else:
-            self.sort_and_assign_leader()
+        #else:
+            #self.sort_and_assign_leader()
      
     #--------------------------------------------------------------------------
     def show_winner_screen(self):
@@ -909,7 +925,7 @@ class Game(object,Communicate):
                 if (self.player_num == self.leader_list[0]):
                     if self.create_update_pool==True:
                         self.create_update_pool_leader()
-                    self.multicast_to_peers_data(UPDATE, '')
+                    self.multicast_to_peers_data(UPDATE, self.player_num)
             else:
                 self.allow_player_joined()
 
