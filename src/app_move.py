@@ -291,7 +291,7 @@ class Game(object,Communicate):
     def __handle_update(self,peerconn,data,peername):
     #--------------------------------------------------------------------------        
         source = data
-        #print data, self.leader_num
+        
         if (int(source) != int(self.leader_num)):
             key = self.leader_num
             print 'Receive update from a different player:', source
@@ -305,13 +305,12 @@ class Game(object,Communicate):
                 self.enemy[key].alive = False
                 self.enemy.pop(key)
                 del self.connect_pool[self.playernum_hostip_dict[key]]
-                
-                
-            
+                   
         self.update_count += 1
         self.update_all()
     
     def update_all(self):
+        print 'update all', self.leader_num
         self.tilemap.update(90 / 1000.,self)
         self.tilemap.draw(self.game_surface)
         
