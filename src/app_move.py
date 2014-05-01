@@ -311,7 +311,7 @@ class Game(object,Communicate):
         self.update_all()
     
     def update_all(self):
-        print 'update all', self.leader_num
+        #print 'update all', self.leader_num
         self.tilemap.update(90 / 1000.,self)
         self.tilemap.draw(self.game_surface)
         
