@@ -49,7 +49,7 @@ MAX_PLAYER_NUMBER = 4
 REJOIN ="REJN"
 PEER_INFO_DETAILS_AFTERSTART="PIDA"
 
-UPDATE_FREQUENCY = 0.06
+UPDATE_FREQUENCY = 0.08
 CHECK_COUNT_FREQUENCY = 1
 WAIT_NEW_LEADER = 5
 
@@ -633,6 +633,7 @@ class Game(object,Communicate):
     def sort_and_assign_leader(self):
     #-------------------------------------------------------------------------- 
         self.leader_list_lock.acquire()
+        print "LEADER_LIST:", self.leader_list
         if len(self.leader_list)>0:
                 self.leader_list.sort()
                 self.leader_num=self.leader_list[0]
