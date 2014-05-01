@@ -338,7 +338,9 @@ class Communicate:
                 data=str(self.game_id)+" "+str(self.playernum_hostip_dict[key])+" "+str(key)
                 self.contactbootstrap("DROP",None,data)
                 temp.append(self.playernum_hostip_dict[key])
+                self.playernum_hostip_dict_lock.acquire()
                 del self.playernum_hostip_dict[key]
+                self.playernum_hostip_dict_lock.release()
                 self.leader_list.remove(key)
                 #self.sort_and_assign_leader()
                 if self.enemy[key]:

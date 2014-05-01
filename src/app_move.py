@@ -295,7 +295,9 @@ class Game(object,Communicate):
             print 'Receive update from a different player:', source
             self.leader_num = str(source)
             if key in self.playernum_hostip_dict:
+                self.playernum_hostip_dict_lock.acquire()
                 del self.playernum_hostip_dict[key]
+                self.playernum_hostip_dict_lock.release()
                 self.leader_list.remove(key)
                 self.enemy[key].alive = False
                 self.enemy.pop(key)
@@ -332,7 +334,9 @@ class Game(object,Communicate):
                 self.contactbootstrap("DROP", None, data)
                 
                 del self.connect_pool[self.playernum_hostip_dict[key]]
+                self.playernum_hostip_dict_lock.acquire()
                 del self.playernum_hostip_dict[key]
+                self.playernum_hostip_dict_lock.release()
                 self.leader_list.remove(key)
                 self.sort_and_assign_leader()
                 self.enemy[key].alive = False
