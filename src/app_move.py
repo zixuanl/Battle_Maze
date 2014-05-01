@@ -246,9 +246,11 @@ class Game(object,Communicate):
                 if self.playernum_hostip_dict[key] == data:
                     remove = key
             if remove:
-                self.playernum_hostip_dict.pop(remove)
+                self.playernum_hostip_dict_lock.acquire()
+                del self.playernum_hostip_dict[remove]
+                self.playernum_hostip_dict_lock.release()
                 self.leader_list.remove(remove)
-                self.sort_and_assign_leader()
+                #self.sort_and_assign_leader()
                 if self.enemy[remove]:
                     #print self.enemy[remove].alive
                     self.enemy[remove].alive=False
@@ -293,6 +295,7 @@ class Game(object,Communicate):
         if (int(source) != int(self.leader_num)):
             key = self.leader_num
             print 'Receive update from a different player:', source
+            print 'New leader:', source
             self.leader_num = str(source)
             if key in self.playernum_hostip_dict:
                 self.playernum_hostip_dict_lock.acquire()
@@ -302,7 +305,7 @@ class Game(object,Communicate):
                 self.enemy[key].alive = False
                 self.enemy.pop(key)
                 del self.connect_pool[self.playernum_hostip_dict[key]]
-                print 'New leader:', source
+                
                 
             
         self.update_count += 1
