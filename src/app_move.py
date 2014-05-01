@@ -610,12 +610,12 @@ class Game(object,Communicate):
             for key in self.playernum_hostip_dict:
                 value = self.playernum_hostip_dict[key].split(":")
                 host,port = value[0],value[1]
-                if self.playernum_hostip_dict[key] not in self.update_pool:
-                    self.update_pool[self.playernum_hostip_dict[key]] = Handler_thread( None, host, port, debug=self.debug )
-                    print "create update connection to ",
-                    print host,
-                    print ":",
-                    print port
+
+                self.update_pool[self.playernum_hostip_dict[key]] = Handler_thread( None, host, port, debug=self.debug )
+                print "create update connection to ",
+                print host,
+                print ":",
+                print port
                 
             self.check = threading.Thread( target = self.check_mainloop, args = [] )
             self.check.setDaemon(True)
@@ -878,7 +878,8 @@ class Game(object,Communicate):
         self.tilemap.layers.append(self.enemies)
         self.tilemap.layers.append(self.players_sp)
         self.tilemap.layers.append(self.flag_layer)
-
+        
+        
         try:
             for key in self.playernum_hostip_dict:
                 value = self.playernum_hostip_dict[key].split(":")

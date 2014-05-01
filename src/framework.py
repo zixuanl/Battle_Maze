@@ -340,7 +340,7 @@ class Communicate:
                 temp.append(self.playernum_hostip_dict[key])
                 del self.playernum_hostip_dict[key]
                 self.leader_list.remove(key)
-                self.sort_and_assign_leader()
+                #self.sort_and_assign_leader()
                 if self.enemy[key]:
                     print self.enemy[key].alive
                     self.enemy[key].alive=False
