@@ -305,7 +305,7 @@ class Game(object,Communicate):
                 self.enemy[key].alive = False
                 self.enemy.pop(key)
                 del self.connect_pool[self.playernum_hostip_dict[key]]
-                   
+                
         self.update_count += 1
         self.update_all()
     
@@ -505,7 +505,8 @@ class Game(object,Communicate):
                     return
                 
                 received_messagetype=resp[0][0]
-                gameid,peername,player_number,flags_data= resp[0][1].split()
+                print resp[0][1]
+                gameid,peername,player_number,flags_data= resp[0][1].split(' ', 3)
                 self.playernum_hostip_dict[player_number]=peername
                 self.leader_list.append(player_number)
                 self.message_queue[player_number] = {}
