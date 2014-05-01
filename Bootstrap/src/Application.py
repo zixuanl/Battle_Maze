@@ -1,8 +1,3 @@
-'''
-Created on Apr 19, 2014
-
-@author: arvindbalaji
-'''
 from Framework import *
 import random
 import sys

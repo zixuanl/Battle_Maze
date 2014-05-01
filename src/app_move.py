@@ -114,7 +114,7 @@ class Game(object,Communicate):
 ###############################################################   
         #PLEASE uncomment and assign your IP to the following for testing to make it work on your machine
 
-        self.bootstrap='128.237.220.219:12345'
+        #self.bootstrap='128.237.220.219:12345'
         
         self.contactbootstrap(GAME_START,firstpeer) #contact bootstrap to get required information
             
@@ -922,7 +922,7 @@ class Game(object,Communicate):
                     print 'Game over'
                     self.show_loser_screen()
                 #print self.player_num, self.leader_list[0]
-                if (self.player_num == self.leader_list[0]):
+                if (self.player_num == self.leader_num):
                     if self.create_update_pool==True:
                         self.create_update_pool_leader()
                     self.multicast_to_peers_data(UPDATE, self.player_num)

@@ -33,7 +33,7 @@ class Communicate:
         self.game_dict_lock = threading.RLock()
         
         self.game_dict={}
-        self.available_maps_dict = {1:'maps/level2.tmx',2:'maps/level2.tmx',3:'maps/level2.tmx',4:'maps/level2.tmx'}
+        self.available_maps_dict = {1:'maps/level3_design.tmx',2:'maps/level4.tmx',3:'maps/level4.tmx',4:'maps/level5.tmx'}
         self.gameid_map_dict ={}
         self.game_id=1
             
