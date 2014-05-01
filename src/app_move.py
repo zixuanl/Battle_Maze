@@ -50,7 +50,7 @@ REJOIN ="REJN"
 PEER_INFO_DETAILS_AFTERSTART="PIDA"
 
 UPDATE_FREQUENCY = 0.08
-CHECK_COUNT_FREQUENCY = 1
+CHECK_COUNT_FREQUENCY = 3
 WAIT_NEW_LEADER = 5
 
 class Game(object,Communicate):
@@ -114,7 +114,7 @@ class Game(object,Communicate):
 ###############################################################   
         #PLEASE uncomment and assign your IP to the following for testing to make it work on your machine
 
-        #self.bootstrap='128.237.220.219:12345'
+        #self.bootstrap='10.0.0.8:12345'
         
         self.contactbootstrap(GAME_START,firstpeer) #contact bootstrap to get required information
             
@@ -932,11 +932,24 @@ class Game(object,Communicate):
                 self.allow_player_joined()
 
 if __name__=='__main__':
-    if len(sys.argv) < 4:
-        print "Syntax: %s server-port max-peers peer-ip:port" % sys.argv[0]
+    if len(sys.argv) < 1:
+        print "Syntax: %s port" % sys.argv[0]
         sys.exit(-1)
+    
+    s = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+    s.connect( ( "www.google.com", 80 ) )
+    serverhost = s.getsockname()[0]
+    s.close()
+    print "SERVER HOST",serverhost
+    peerid = serverhost+":"+sys.argv[1]
+    serverport = int(sys.argv[1])
+    maxpeers = 5
+    print peerid,serverport,maxpeers
+    
+    """
     serverport = int(sys.argv[1])
     maxpeers = sys.argv[2]
     peerid = sys.argv[3]
+    """
     appl = Game(firstpeer=peerid, maxpeers=maxpeers, serverport=serverport)
     appl.main(appl.screen)
