@@ -867,7 +867,8 @@ class Game(object,Communicate):
         start_cell = self.tilemap.layers['player'].find('player')[int(self.player_num)-1]
         flag_cell = self.tilemap.layers['flags'].find('flag')[int(self.player_num)-1]
         self.player1 = player((start_cell.px, start_cell.py),self.player_num,self.players_sp)
-        if (int(self.player_num) not in collected):
+        if (str(self.player_num) not in collected):
+            print 'Flag recreated:', str(self.player_num)
             self.flag_list[self.player_num]=flags((flag_cell.px,flag_cell.py),self.player_num,self.flag_layer)
         
         for entry in self.playernum_hostip_dict:
@@ -875,7 +876,8 @@ class Game(object,Communicate):
                 start_cell = self.tilemap.layers['player'].find('player')[int(entry)-1]
                 flag_cell = self.tilemap.layers['flags'].find('flag')[int(entry)-1]
                 self.enemy[entry]=enemies((start_cell.px,start_cell.py),entry,self.enemies)
-                if (int(entry) not in collected):
+                if (str(entry) not in collected):
+                    print 'Flag recreated:', str(entry)
                     self.flag_list[entry]=flags((flag_cell.px,flag_cell.py),entry,self.flag_layer)
         
         self.tilemap.layers.append(self.sprites)
