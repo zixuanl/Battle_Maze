@@ -392,11 +392,13 @@ class Game(object,Communicate):
                 if players_game_id == self.game_id:
                     try:
                         del self.connect_pool[self.playernum_hostip_dict[player_num]]
+                        self.leader_list.remove(player_num)
                         if self.player_num==self.leader_num:
                             del self.update_pool[self.playernum_hostip_dict[player_num]]
+                        if player_num==self.leader_num:
+                             self.sort_and_assign_leader()
                         self.playernum_hostip_dict.pop(player_num)
-                        self.leader_list.remove(player_num)
-                        self.sort_and_assign_leader()
+                        
                     except KeyError:
                         print "Key not found"
                     if self.enemy[player_num]:
@@ -643,7 +645,8 @@ class Game(object,Communicate):
         if len(self.leader_list)>0:
                 self.leader_list.sort()
                 self.leader_num=self.leader_list[0]
-                self.create_update_pool=True
+                if self.player_num==self.leader_num:
+                    self.create_update_pool=True
                 #print "LEADER_NUMBER:", self.leader_num
         self.leader_list_lock.release()
         
@@ -946,11 +949,6 @@ if __name__=='__main__':
     serverport = int(sys.argv[1].split(":")[1])
     maxpeers = 5
     print peerid,serverport,maxpeers
-    
-    """
-    serverport = int(sys.argv[1])
-    maxpeers = sys.argv[2]
-    peerid = sys.argv[3]
-    """
+
     appl = Game(firstpeer=peerid, maxpeers=maxpeers, serverport=serverport)
     appl.main(appl.screen)
