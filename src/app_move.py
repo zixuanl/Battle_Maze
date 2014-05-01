@@ -936,13 +936,14 @@ if __name__=='__main__':
         print "Syntax: %s port" % sys.argv[0]
         sys.exit(-1)
     
+    """
     s = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
     s.connect( ( "www.google.com", 80 ) )
     serverhost = s.getsockname()[0]
     s.close()
-    print "SERVER HOST",serverhost
-    peerid = serverhost+":"+sys.argv[1]
-    serverport = int(sys.argv[1])
+    """
+    peerid = sys.argv[1]
+    serverport = int(sys.argv[1].split(":")[1])
     maxpeers = 5
     print peerid,serverport,maxpeers
     
