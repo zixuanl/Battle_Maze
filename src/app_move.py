@@ -523,7 +523,7 @@ class Game(object,Communicate):
                 if received_messagetype==PEER_INFO_DETAILS_AFTERSTART:
                     #print flags_data
                     if (flags_data != 'r'):
-                        self.flags_collected[player_number] = map(int, flags_data.split())
+                        self.flags_collected[player_number] = flags_data.split()
                         #print "AFTER START CONSIDITION"
                     self.play_start=True
             
