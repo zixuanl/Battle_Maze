@@ -65,6 +65,8 @@ class player(pygame.sprite.Sprite,Communicate):
             game.tilemap.layers.append(game.flag_layer)
             del game.flags_collected[game.player_num]
             self.kill()
+            game.tilemap.layers.append(game.players_sp)
+            return
             
         if self.killed == True:
             self.killed = False
