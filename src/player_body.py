@@ -59,12 +59,17 @@ class player(pygame.sprite.Sprite,Communicate):
         if self.alive == False:
             print 'Player', game.player_num, 'is dead'
             print 'Flags in his hand', game.flags_collected[game.player_num]
+            print game.player_num
+            
             for flag_num in game.flags_collected[game.player_num]:
                 flag_cell = game.tilemap.layers['flags'].find('flag')[int(flag_num)-1]
                 game.flag_list[flag_num] = flags((flag_cell.px,flag_cell.py),flag_num,game.flag_layer)
+            print "TILEMAP FLAG UPDATE"
             game.tilemap.layers.append(game.flag_layer)
             del game.flags_collected[game.player_num]
+            print "GOING TO GET KILLED"
             self.kill()
+            print "TILEMAP PLAYER UPDATE"
             game.tilemap.layers.append(game.players_sp)
             return
             

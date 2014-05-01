@@ -58,12 +58,16 @@ class enemies(pygame.sprite.Sprite,Communicate):
         if self.alive == False:
             print 'Player', self.player_num, 'is dead'
             print 'Flags in his hand', game.flags_collected[self.player_num]
+            print game.player_num,"PAYER NUM"
             for flag_num in game.flags_collected[self.player_num]:
                 flag_cell = game.tilemap.layers['flags'].find('flag')[int(flag_num)-1]
                 game.flag_list[flag_num] = flags((flag_cell.px,flag_cell.py),flag_num,game.flag_layer)
             game.tilemap.layers.append(game.flag_layer)
+            print "TILEMAP FLAG UPDATE ENEMY"
             del game.flags_collected[self.player_num]
+            print "GOING TO GET KILLED ENEMY"
             self.kill()
+            print "TILEMAP PLAYER UPDATE ENEMY"
             game.tilemap.layers.append(game.enemies)
             return
             
