@@ -66,7 +66,7 @@ class Communicate:
         
         bootstrap_ip=socket.gethostbyname("battlemaze.zapto.org")
         self.bootstrap=bootstrap_ip+":12345"
-        print self.bootstrap
+        #print self.bootstrap
 
     #--------------------------------------------------------------------------
     def __get_self_ip( self ):
@@ -342,15 +342,15 @@ class Communicate:
                 self.leader_list.remove(key)
                 #self.sort_and_assign_leader()
                 if self.enemy[key]:
-                    print self.enemy[key].alive
+                    #print self.enemy[key].alive
                     self.enemy[key].alive=False
                     self.enemy.pop(key)
                 
             for item in temp:
                 self.multicast_to_peers_data("DROP", item)
                 
-                print "current game dictionary is"
-                print self.playernum_hostip_dict
+                #print "current game dictionary is"
+                #print self.playernum_hostip_dict
                                 
             temp=[]
             to_remove_key = []    

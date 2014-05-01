@@ -67,11 +67,11 @@ class enemies(pygame.sprite.Sprite,Communicate):
             
         if self.killed == True:
             self.killed = False
-            print 'Enemy killed: updating...', self.killer
+            print 'Player', self.player_num, 'is killed:', self.killer, 'is the killer'
             self.rect = self.start_rect.copy()
             game.flags_collected[self.killer].extend(game.flags_collected[self.player_num])
             game.flags_collected[self.player_num] = []
-            print 'Flags updated: ', game.flags_collected[self.player_num], game.flags_collected[self.killer]
+            #print 'Flags updated: ', game.flags_collected[self.player_num], game.flags_collected[self.killer]
             
         
         key=pygame.key.get_pressed()
