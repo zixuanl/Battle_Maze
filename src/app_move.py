@@ -592,16 +592,20 @@ class Game(object,Communicate):
             self.playernum_hostip_dict_lock.release()
         
         elif message_type==DROP_NODE:
+            self.playernum_hostip_dict_lock.acquire()
             for key in self.playernum_hostip_dict:
                     value = self.playernum_hostip_dict[key].split(":")
                     host,port = value[0],value[1]
                     self.contact_peer_with_msg(host, port, "DROP", data)    
+            self.playernum_hostip_dict_lock.release()
         else:
             try:
+                self.playernum_hostip_dict_lock.acquire()
                 for key in self.playernum_hostip_dict:
                     value = self.playernum_hostip_dict[key].split(":")
                     host,port = value[0],value[1]
                     self.contact_peer_with_msg_static(host, port, message_type, data) 
+                self.playernum_hostip_dict_lock.release()
             except:
                 print ""
     """--------------------------------------------END NODE CONTACT FUNCTIONS---------------------------------"""

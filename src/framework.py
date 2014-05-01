@@ -329,9 +329,11 @@ class Communicate:
             for item in to_remove_list:
                 del self.dead_node[item]
                 print "Delete the dead node because of timeout"
+                self.playernum_hostip_dict_lock.acquire()
                 for key in self.playernum_hostip_dict:
                     if self.playernum_hostip_dict[key] == item:
                         to_remove_key.append(key)
+                self.playernum_hostip_dict_lock.release()
                 
             temp=[]  
             for key in to_remove_key:
@@ -358,10 +360,12 @@ class Communicate:
             to_remove_key = []    
             to_remove_list = []
 
+            self.playernum_hostip_dict_lock.acquire()
             for key in self.playernum_hostip_dict:
                 value = self.playernum_hostip_dict[key].split(":")
                 host,port = value[0],value[1]
                 self.contact_peer_with_msg(host, port, "HBMS", "Null") 
+            self.playernum_hostip_dict_lock.release()
 
 
 # end Communicate class
